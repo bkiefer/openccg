@@ -1,17 +1,17 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2003 Jason Baldridge, University of Edinburgh (Michael White) 
+// Copyright (C) 2003 Jason Baldridge, University of Edinburgh (Michael White)
 //                    and Gunes Erkan
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -20,6 +20,7 @@
 package opennlp.ccg.unify;
 
 import gnu.trove.*;
+import gnu.trove.map.hash.*;
 import java.util.*;
 
 /**
@@ -30,7 +31,7 @@ import java.util.*;
  * @author      Jason Baldridge
  * @author      Michael White
  * @author      Gunes Erkan
- * @version     $Revision: 1.13 $, $Date: 2009/12/21 03:27:19 $ 
+ * @version     $Revision: 1.13 $, $Date: 2009/12/21 03:27:19 $
 */
 public class GSubstitution extends THashMap implements Substitution {
 
@@ -63,7 +64,7 @@ public class GSubstitution extends THashMap implements Substitution {
             if (val1 != null && val1.equals(u)) return u;
             // check if u -> var already
             if (val2 != null && val2.equals(var)) return var;
-            // otherwise continue 
+            // otherwise continue
             if (val1 != null) {
                 if (val1 instanceof Unifiable && ((Unifiable)val1).occurs(var2)) {
                     throw new UnifyFailure();
@@ -75,10 +76,10 @@ public class GSubstitution extends THashMap implements Substitution {
                 }
             } else if (val2 != null) {
                 if (val2 instanceof Unifiable && ((Unifiable)val2).occurs(var)) {
-                    throw new UnifyFailure();   
+                    throw new UnifyFailure();
                 }
                 makeSubstitution(var, val2);
-            } 
+            }
         } else if (val1 != null) {
             u = Unifier.unify(val1, u, this);
         }
@@ -102,7 +103,7 @@ public class GSubstitution extends THashMap implements Substitution {
      * Returns null if the variable is unknown to the Substitution.
      *
      * @param var the variable whose value after unification is desired
-     * @return the Object which this variable has been unified with 
+     * @return the Object which this variable has been unified with
      */
     public Object getValue(Variable var) {
         Object val = get(var);
@@ -146,11 +147,11 @@ public class GSubstitution extends THashMap implements Substitution {
         if (!_newFeatStrucIndexes.containsKey(oldIndex)) return oldIndex;
         return getUpdatedIndex(_newFeatStrucIndexes.get(oldIndex));
     }
-    
+
     public void addIndexedObject(int index, Object o) {
         _indexedObjects.put(index, o);
     }
-    
+
     public Object getIndexedObject(int index) {
         return _indexedObjects.get(getUpdatedIndex(index));
     }

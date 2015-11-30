@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2003-7 Jason Baldridge, Gann Bierner, Michael White and Gunes Erkan
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -22,7 +22,8 @@ import opennlp.ccg.synsem.LF;
 import opennlp.ccg.hylo.*;
 import opennlp.ccg.grammar.*;
 import gnu.trove.*;
-import org.jdom.*;
+import gnu.trove.map.hash.*;
+import org.jdom2.*;
 import java.util.*;
 
 
@@ -42,7 +43,7 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
 	boolean _empty = true;
     int _index = 0;
     int _inheritsFrom = 0;
-    
+
     public GFeatStruc() {
         super(3);
     }
@@ -72,12 +73,12 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
             }
         }
     }
-    
+
     public Element toXml() {
     	Element retval = new Element("fs");
     	if (_index > 0) retval.setAttribute("id", Integer.toString(_index));
     	if (_inheritsFrom > 0) retval.setAttribute("inheritsFrom", Integer.toString(_inheritsFrom));
-    	List<String> keys = new ArrayList<String>(keySet()); 
+    	List<String> keys = new ArrayList<String>(keySet());
 		Collections.sort(keys);
     	if (size() == 1 && get(keys.get(0)) instanceof SimpleType) {
     		String attr = keys.get(0); SimpleType val = (SimpleType) get(attr);
@@ -90,7 +91,7 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
     			featElt.setAttribute("attr", attr);
     			retval.addContent(featElt);
     			Object val = get(attr);
-    			if (val instanceof SimpleType) 
+    			if (val instanceof SimpleType)
     				featElt.setAttribute("val", ((SimpleType) val).getName());
     			else {
     				if (val instanceof GFeatVar) {
@@ -104,7 +105,7 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
     				}
     				else if (val instanceof LF)
     					featElt.addContent(HyloHelper.toXml((LF)val));
-    				else 
+    				else
     					throw new RuntimeException("Unsupported feature value type in constructing XML: " + val);
     			}
     		}
@@ -122,7 +123,7 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
         mf.modify(this);
     }
 
-    public void setFeature(String attribute, Object val) { 
+    public void setFeature(String attribute, Object val) {
         put(attribute, val);
         _empty = false;
     }
@@ -154,7 +155,7 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
         }
         setFeature(attr, value);
     }
-    
+
     public Object getValue(String attribute) {
         return get(attribute);
     }
@@ -170,8 +171,8 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
     public Set<String> getAttributes() {
         return keySet();
     }
-    
-    public void clear() { 
+
+    public void clear() {
         clear();
         _empty = true;
     }
@@ -180,26 +181,26 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
     public boolean equals(FeatureStructure fs) {
         if (!(fs instanceof GFeatStruc)) return false;
         GFeatStruc bfs = (GFeatStruc)fs;
-        
-        if (_index != bfs._index) return false; 
+
+        if (_index != bfs._index) return false;
 
         if (size() != bfs.size()) return false;
         Set<String> atts1 = getAttributes();
         Set<String> atts2 = bfs.getAttributes();
         if (!atts1.containsAll(atts2)) return false;
-        
+
         for (Iterator<String> it = atts1.iterator(); it.hasNext(); ) {
             String att = it.next();
             if (!getValue(att).equals(bfs.getValue(att))) return false;
         }
-        
+
         return true;
     }
-    
+
     /** Returns a hash code consistent with equals. */
     public int hashCode() { return super.hashCode() + _index; }
 
-    public FeatureStructure copy() { 
+    public FeatureStructure copy() {
         GFeatStruc $fs = new GFeatStruc(size());
         $fs.setIndex(_index);
         $fs._inheritsFrom = _inheritsFrom;
@@ -210,10 +211,10 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
         return $fs;
     }
 
-    public boolean contains(FeatureStructure fs) { 
+    public boolean contains(FeatureStructure fs) {
         if (size() < fs.size())
             return false;
-        
+
         Set<String> atts1 = getAttributes();
         Set<String> atts2 = fs.getAttributes();
         if (atts1.containsAll(atts2)) {
@@ -262,11 +263,11 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
         }
     }
 
-    public Object unify(Object u, Substitution sub) throws UnifyFailure { 
+    public Object unify(Object u, Substitution sub) throws UnifyFailure {
 
         if (!(u instanceof FeatureStructure)) {
             throw new UnifyFailure();
-        } 
+        }
 
         FeatureStructure fs2 = (FeatureStructure)u;
         FeatureStructure $fs = new GFeatStruc(size());
@@ -331,7 +332,7 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
         return $fs;
     }
 
-    public FeatureStructure inherit(FeatureStructure fs) { 
+    public FeatureStructure inherit(FeatureStructure fs) {
         FeatureStructure $fs = copy();
         for (Iterator<String> i = fs.getAttributes().iterator(); i.hasNext();) {
             String a = i.next();
@@ -356,17 +357,17 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
         Object val = getValue(attribute);
         sb.append(attribute).append('=').append(val.toString());
     }
-    
+
     public String toString() {
 
         // if (_empty) return "";
 
         StringBuffer sb = new StringBuffer(size()*4);
- 
+
         if (_index > 0) {
             sb.append('<'); sb.append(_index); sb.append('>');
         }
-        
+
         if (_empty) return sb.toString();
 
         String featsToShow = Grammar.theGrammar.prefs.featsToShow;
@@ -380,29 +381,29 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
         else {
             for (Iterator<String> it = keySet().iterator(); it.hasNext(); ) {
                 String key = it.next();
-                if (featsToShow.indexOf(key) != -1) 
+                if (featsToShow.indexOf(key) != -1)
                     filteredKeys.add(key);
             }
         }
         String[] keys = new String[filteredKeys.size()];
         filteredKeys.toArray(keys);
         Arrays.sort(keys);
-        
+
         for (int i=0; i < keys.length; i++) {
             addFeatureString(keys[i], sb);
             if (i < keys.length - 1) sb.append(", ");
         }
-        
+
         sb.append('}');
-        
+
         return sb.toString();
     }
 
     /**
      * Returns the supertag info for this feature structure.
-     * In particular, returns the values of any non-variable 
+     * In particular, returns the values of any non-variable
      * features of interest, within square brackets.
-     * The features of interest are configurable 
+     * The features of interest are configurable
      * at the grammar level.
      */
     public String getSupertagInfo() {
@@ -422,14 +423,14 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
         }
         return sb.toString();
     }
-    
+
     private void addFeatureTeX(String attribute, StringBuffer sb) {
         Object val = getValue(attribute);
         String s = cleanText(val.toString());
         if (s.equals("+") || s.equals("-")) s = attribute + s;
         sb.append(" ").append(s);
     }
-    
+
     // makes sure every special character is handled correctly in LaTeX
     private String cleanText(String s) {
         String str = s;
@@ -451,7 +452,7 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
         }
         return str;
     }
-    
+
     public String toTeX() {
         StringBuffer sb = new StringBuffer();
         if ((_index > 0)&&(_empty)) {
@@ -470,7 +471,7 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
         else {
             for (Iterator<String> it = keySet().iterator(); it.hasNext(); ) {
                 String key = it.next();
-                if (featsToShow.indexOf(key) != -1) 
+                if (featsToShow.indexOf(key) != -1)
                     filteredKeys.add(key);
             }
         }
@@ -484,16 +485,23 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
         sb.append(" } ");
         return sb.toString();
     }
-    
-    
+
+
     /**
-     * Returns a hash code using the given map from vars to ints, 
+     * Returns a hash code using the given map from vars to ints,
      * to allow for equivalence up to variable names.
+     * The index (id) is not used, so that feature structures that differ
+     * only in their index value will be considered equal, as desired for
+     * testing whether two derived categories are equal.  Note that this
+     * means that the behavior of this method differs from the
+     * behavior of equals and hashCode.
      */
     public int hashCode(TObjectIntHashMap varMap) {
 
+        if (_empty) { return 0; }
+
         int retval = 0;
-        
+
         // nb: treat index as a regular var
         if (_index != 0) {
     		// see if index already in map
@@ -512,7 +520,7 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
     		varMap.put(-1 * Math.abs(System.identityHashCode(this)), next);
     		retval = next;
 		}
-        
+
         if (_empty) { return retval; }
 
         // sort keys
@@ -520,7 +528,7 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
         String[] keys = new String[keySet.size()];
         keySet.toArray(keys);
         Arrays.sort(keys);
-        
+
         // do each key
         for (int i=0; i<keys.length; i++) {
             retval += keys[i].hashCode();
@@ -530,27 +538,27 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
             // otherwise just hash code
             else retval += val.hashCode();
         }
-        
+
         return retval;
     }
-    
+
     /**
-     * Returns whether this feature structure equals the given object  
+     * Returns whether this feature structure equals the given object
      * up to variable names, using the given maps from vars to ints.
      */
     public boolean equals(Object obj, TObjectIntHashMap varMap, TObjectIntHashMap varMap2) {
         if (obj.getClass() != this.getClass()) { return false; }
         GFeatStruc fs = (GFeatStruc) obj;
-        
+
         int mappedIndex = (_index != 0) ? varMap.get(_index) : varMap.get(-1 * Math.abs(System.identityHashCode(this)));
         int fsMappedIndex = (fs._index != 0) ? varMap2.get(fs._index) : varMap2.get(-1 * Math.abs(System.identityHashCode(fs)));
         if (mappedIndex != fsMappedIndex) return false;
-        
+
         if (size() != fs.size()) return false;
         Set<String> atts1 = getAttributes();
         Set<String> atts2 = fs.getAttributes();
         if (!atts1.containsAll(atts2)) return false;
-        
+
         for (Iterator<String> it = atts1.iterator(); it.hasNext(); ) {
             String att = it.next();
             Object val = getValue(att);
@@ -562,7 +570,7 @@ public class GFeatStruc extends HashMap<String,Object> implements FeatureStructu
                 if (!val.equals(val2)) return false;
             }
         }
-        
+
         return true;
     }
 }

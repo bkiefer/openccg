@@ -18,7 +18,7 @@
 
 package opennlp.ccg.unify;
 
-import gnu.trove.TObjectIntHashMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
 
 /**
  * A variable that can stand for some class of Unifiable objects.

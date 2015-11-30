@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2003 Jason Baldridge and University of Edinburgh (Michael White)
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -40,18 +40,40 @@ public abstract class AbstractRule implements Rule, Serializable {
 
 	/** The interned name of this rule. */
     protected String _name;
-    
+
     /** The rule group which contains this rule. */
     protected RuleGroup _ruleGroup;
-    
+
     /** Reusable list of head cats, one for each result. */
-    protected List<Category> _headCats = new ArrayList<Category>(); 
+    protected List<Category> _headCats = new ArrayList<Category>();
+
+	public static boolean handleRobustness = true;
+
+	public static boolean asrcorrectionRules = false;
+	public static boolean disclevelcompositionRules = false;
+	public static boolean disfluencycorrectionRules = false;
+
+	public static int MAX_NB_COMPOSITIONS = 3;
+	public static int MAX_LEXICAL_CORRECTIONS = 1;
+	public static int MAX_DISFLUENCY_CORRECTIONS = 1;
+
+	private static final int ULTRAVERBOSE_OUTPUT = 0;
+
+	/** Applies the rule to the given input signs, adding to the given list of results. */
+	public void applyRule(Sign[] inputs, List<Sign> results) {
+		if (!handleRobustness){
+			applyRuleNormal(inputs, results);
+		}
+		else {
+			applyRuleRobust(inputs, results);
+		}
+	}
 
     /** Returns an XML element representing the rule. */
     abstract public Element toXml();
 
     /** Applies the rule to the given input signs, adding to the given list of results. */
-    public void applyRule(Sign[] inputs, List<Sign> results) {
+    public void applyRuleNormal(Sign[] inputs, List<Sign> results) {
 
         if (inputs.length != arity()) { // shouldn't happen
             throw new RuntimeException("Inputs must have length " + arity());
@@ -65,7 +87,7 @@ public abstract class AbstractRule implements Rule, Serializable {
         try {
             List<Category> resultCats = applyRule(cats);
             if (resultCats.isEmpty()) return;
-            
+
             for (int i=0; i < resultCats.size(); i++) {
             	Category catResult = resultCats.get(i);
                 distributeTargetFeatures(catResult);
@@ -77,11 +99,131 @@ public abstract class AbstractRule implements Rule, Serializable {
                 Sign sign = Sign.createDerivedSign(catResult, inputs, this, lexHead);
                 results.add(sign);
             }
-        } catch (UnifyFailure uf) {}
+        } catch (UnifyFailure uf) {
+          if ((ULTRAVERBOSE_OUTPUT & 2) != 0) {
+            System.out.println("Unification Failure " + uf);
+          }
+        }
     }
-    
+
+
+
+    /** Applies the rule to the given input signs, adding to the given list of results. */
+    public void applyRuleRobust(Sign[] inputs, List<Sign> results) {
+
+        if (inputs.length != arity()) { // shouldn't happen
+            throw new RuntimeException("Inputs must have length " + arity());
+        }
+
+		if (name().contains("disclevelcomposition") &&
+				!disclevelcompositionRules) { return ; }
+
+		if (name().contains("correction") &&
+				!disfluencycorrectionRules) { return ; }
+
+
+    	int NbLexicalCorrectionRulesApplied = 0;
+		int NbTypeShiftingRulesApplied = 0;
+		int NbDiscLevelCompositionRulesApplied = 0;
+		int NbDisflCorrectionRulesApplied = 0;
+
+        Category[] cats = new Category[inputs.length];
+
+        for (int i=0; i < cats.length; i++) {
+            cats[i] = inputs[i].getCategory();
+
+            NbLexicalCorrectionRulesApplied +=
+				inputs[i].getDerivationHistory().NbLexicalCorrectionRulesApplied;
+			NbTypeShiftingRulesApplied +=
+				inputs[i].getDerivationHistory().NbTypeShiftingRulesApplied;
+			NbDiscLevelCompositionRulesApplied +=
+				inputs[i].getDerivationHistory().NbDiscLevelCompositionRulesApplied;
+			NbDisflCorrectionRulesApplied +=
+				inputs[i].getDerivationHistory().NbDisflCorrectionRulesApplied;
+
+			FeatureStructure feats = cats[i].getTarget().getFeatureStructure();
+
+			if (NbLexicalCorrectionRulesApplied < MAX_LEXICAL_CORRECTIONS &&
+					feats != null && feats.hasAttribute("CORRECTED")) {
+				if (asrcorrectionRules) {
+				inputs[i].getDerivationHistory().NbLexicalCorrectionRulesApplied = 1;
+				NbLexicalCorrectionRulesApplied ++;
+				}
+				else { return; }
+			}
+
+			if (NbLexicalCorrectionRulesApplied > MAX_LEXICAL_CORRECTIONS) {
+				return ; }
+		}
+
+        if (disclevelcompositionRules) {
+			if (name().equals("disclevelcomposition")) {
+				if (NbDiscLevelCompositionRulesApplied > MAX_NB_COMPOSITIONS - 1) {
+					return;
+				}
+				NbDiscLevelCompositionRulesApplied++;
+			}
+			else if (name().equals(">") &&
+			 (NbDiscLevelCompositionRulesApplied > MAX_NB_COMPOSITIONS)) {
+				return;
+			}
+		}
+
+
+		if (disfluencycorrectionRules) {
+			if (name().contains("correction")) {
+				if (NbDisflCorrectionRulesApplied > MAX_DISFLUENCY_CORRECTIONS - 1) {
+					return;
+				}
+				NbDisflCorrectionRulesApplied++;
+			}
+			else if (name().equals(">") &&
+			 (NbDisflCorrectionRulesApplied > MAX_DISFLUENCY_CORRECTIONS)) {
+				return;
+			}
+		}
+
+
+
+        try {
+
+            List<Category> resultCats = applyRule(cats);
+            if (resultCats.isEmpty()) return;
+
+            if ((ULTRAVERBOSE_OUTPUT & 1) != 0) {
+              System.out.print(_name + "(");
+              for (Sign s : inputs) {
+                Grammar.theGrammar.prefs.featsToShow = "";
+                System.out.print(" " + s.toString());
+              }
+              System.out.println(" --> ");
+            }
+
+            for (Category catResult : resultCats) {
+                distributeTargetFeatures(catResult);
+                Sign sign = Sign.createDerivedSign(catResult, inputs, this);
+
+                if ((ULTRAVERBOSE_OUTPUT & 1) != 0) System.out.println(sign);
+
+				sign.getDerivationHistory().NbLexicalCorrectionRulesApplied =
+					NbLexicalCorrectionRulesApplied;
+				sign.getDerivationHistory().NbTypeShiftingRulesApplied =
+					NbTypeShiftingRulesApplied;
+				sign.getDerivationHistory().NbDiscLevelCompositionRulesApplied =
+					NbDiscLevelCompositionRulesApplied;
+				sign.getDerivationHistory().NbDisflCorrectionRulesApplied =
+					NbDisflCorrectionRulesApplied;
+
+                results.add(sign);
+            }
+        } catch (UnifyFailure uf) {
+          if ((ULTRAVERBOSE_OUTPUT & 2) != 0)
+            System.out.println(uf);
+        }
+    }
+
     /** Propagates distributive features from target cat to the rest. */
-    // nb: it would be nicer to combine inheritsFrom with $, but 
+    // nb: it would be nicer to combine inheritsFrom with $, but
     //     this would be complicated, as inheritsFrom is compiled out
     protected void distributeTargetFeatures(Category cat) {
     	if (_ruleGroup == null) return;
@@ -93,13 +235,13 @@ public abstract class AbstractRule implements Rule, Serializable {
         if (targetFS == null) return;
         cat.forall(distributeTargetFeaturesFcn);
     }
-    
+
     // target cat's feature structure
     private GFeatStruc targetFS = null;
 
     // copies ground distributive features from _targetFS to the rest
     private CategoryFcn distributeTargetFeaturesFcn = new DistributeTargetFeaturesFcn();
-    
+
     private class DistributeTargetFeaturesFcn extends CategoryFcnAdapter implements Serializable {
 		private static final long serialVersionUID = 5247861522003485434L;
 		public void forall(Category c) {
@@ -116,8 +258,8 @@ public abstract class AbstractRule implements Rule, Serializable {
             }
         }
     }
-    
-    
+
+
     /**
      * The number of arguments this rule takes.  For example, the arity of the
      * forward application rule of categorial grammar (X/Y Y => Y) is 2.
@@ -136,12 +278,12 @@ public abstract class AbstractRule implements Rule, Serializable {
      **/
     public abstract List<Category> applyRule(Category[] inputs) throws UnifyFailure;
 
-    
+
     /** Prints an apply instance for the given categories to System.out. */
     protected void showApplyInstance(Category[] inputs) {
-        StringBuffer sb = new StringBuffer();  
+        StringBuffer sb = new StringBuffer();
         sb.append(_name).append(": ");
-        
+
         for (int i=0; i < inputs.length; i++) {
             sb.append(inputs[i]).append(' ');
         }
@@ -155,27 +297,27 @@ public abstract class AbstractRule implements Rule, Serializable {
         showApplyInstance(ca);
     }
 
-    
+
     /**
      * Returns the interned name of this rule.
      */
     public String name() {
         return _name;
     }
-    
+
     /**
      * Returns the rule group which contains this rule.
      */
     public RuleGroup getRuleGroup() { return _ruleGroup; }
-    
+
     /**
      * Sets this rule's rule group.
      */
     public void setRuleGroup(RuleGroup ruleGroup) { _ruleGroup = ruleGroup; }
 
-    
+
     /** Appends, fills, sorts and checks the LFs from cats 1 and 2 into the result cat. */
-    protected void appendLFs(Category cat1, Category cat2, Category result, Substitution sub) 
+    protected void appendLFs(Category cat1, Category cat2, Category result, Substitution sub)
         throws UnifyFailure
     {
         LF lf = HyloHelper.append(cat1.getLF(), cat2.getLF());
@@ -187,4 +329,3 @@ public abstract class AbstractRule implements Rule, Serializable {
         result.setLF(lf);
     }
 }
-

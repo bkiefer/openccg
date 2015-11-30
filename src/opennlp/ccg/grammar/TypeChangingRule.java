@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2003-4 Jason Baldridge and University of Edinburgh (Michael White)
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -34,23 +34,23 @@ import org.jdom.Element;
  * @version $Revision: 1.12 $, $Date: 2009/11/30 20:36:16 $
  **/
 public class TypeChangingRule extends AbstractRule implements LexSemOrigin {
-	
+
 	private static final long serialVersionUID = -2654945192870162776L;
 
 	/**
-	 * String used as the POS for all type changing rules, 
+	 * String used as the POS for all type changing rules,
 	 * to satisfy the LexSemOrigin interface.
 	 * Defaults to "URULE".
 	 */
 	public static String POS_STRING = "URULE";
-	
 
-    /** The argument category. */   
-    protected Category _arg; 
+
+    /** The argument category. */
+    protected Category _arg;
 
     /** The result category. */
-    protected Category _result; 
-    
+    protected Category _result;
+
     /** The first elementary predication in the result LF (or null), before sorting. */
     protected LF _firstEP;
 
@@ -76,10 +76,10 @@ public class TypeChangingRule extends AbstractRule implements LexSemOrigin {
 
     /** Returns 1. */
     public int arity() { return 1; }
-    
+
     /** Returns the arg. */
     public Category getArg() { return _arg; }
-    
+
     /** Returns the result. */
     public Category getResult() { return _result; }
 
@@ -101,11 +101,11 @@ public class TypeChangingRule extends AbstractRule implements LexSemOrigin {
 
         // unify quick check
         _arg.unifyCheck(input);
-        
+
         // copy arg and result
         Category arg = _arg.copy();
         Category result = _result.copy();
-        
+
         // make variables unique
         UnifyControl.reindex(result, arg);
 
@@ -125,8 +125,8 @@ public class TypeChangingRule extends AbstractRule implements LexSemOrigin {
         _headCats.add(input);
         return results;
     }
-    
-    
+
+
     /** Returns 'name: arg => result'. */
     public String toString() {
         StringBuffer sb = new StringBuffer();
@@ -135,22 +135,21 @@ public class TypeChangingRule extends AbstractRule implements LexSemOrigin {
         sb.append("=> ").append(_result);
         return sb.toString();
     }
-    
+
     /** Returns 'arg_=>_result' as the supertag. */
     public String getSupertag() {
         StringBuffer sb = new StringBuffer();
         sb.append(_arg.getSupertag()).append("_=>_").append(_result.getSupertag());
         return sb.toString();
     }
-    
+
     /**
-     * Always returns POS_STRING. 
+     * Always returns POS_STRING.
      */
     public String getPOS() { return POS_STRING; }
-    
+
     /**
      * Sets the origin of the elementary predications.
      */
     public void setOrigin() { HyloHelper.setOrigin(_result.getLF(), this); }
 }
-

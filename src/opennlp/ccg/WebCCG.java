@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2006 Ben Wing.
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -28,7 +28,7 @@ import opennlp.ccg.hylo.*;
 //import opennlp.ccg.ngrams.*;
 //import opennlp.ccg.test.*;
 
-//import org.jdom.*;
+//import org.jdom2.*;
 
 import java.io.*;
 import java.net.*;
@@ -52,8 +52,8 @@ import java.util.*;
  */
 public class WebCCG {
     /** Main method for tccg. */
-    public static void main(String[] args) throws IOException, LexException { 
-	String usage = "java opennlp.ccg.WebCCG " + 
+    public static void main(String[] args) throws IOException, LexException {
+	String usage = "java opennlp.ccg.WebCCG " +
 "[-showall] [-showderivs] [-showsem] [-showfeats] [-visualize FILE] GRAMMARDIR\n" +
 "\n" +
 "-showall shows all parses rather than just the first one.\n" +
@@ -71,7 +71,7 @@ public class WebCCG {
 	    System.exit(0);
 	}
 
-	// args        
+	// args
 	//String prefsfile = null;
 	boolean showall = false;
 	boolean showderivs = false;
@@ -127,18 +127,18 @@ public class WebCCG {
 		System.out.print("\"" + input + "\": ");
 		switch (resLength) {
 		case 0: break;
-		case 1: 
-		    System.out.println(resLength + " parse found.\n"); 
+		case 1:
+		    System.out.println(resLength + " parse found.\n");
 		    break;
-		default: System.out.println(resLength + " parses found.\n"); 
+		default: System.out.println(resLength + " parses found.\n");
 		}
-                    
-		Visualizer vis = null; 
+
+		Visualizer vis = null;
 		grammar.prefs.showSem = showsem;
 		grammar.prefs.showFeats = showfeats;
 		grammar.prefs.featsToShow = "";
-		if (visfile != null) { 
-		    vis = new Visualizer(); 
+		if (visfile != null) {
+		    vis = new Visualizer();
 		    vis.writeHeader(visfile);
 		}
 		int numToShow = (showall) ? resLength : 1;
@@ -147,11 +147,11 @@ public class WebCCG {
 		    LF convertedLF = null;
 		    if (cat.getLF() != null) {
 			cat = cat.copy();
-			Nominal index = cat.getIndexNominal(); 
+			Nominal index = cat.getIndexNominal();
 			convertedLF = HyloHelper.compactAndConvertNominals(cat.getLF(), index, results[i]);
 			cat.setLF(null);
 		    }
-		    String parseNum = (resLength == 1) ? "Parse: " : ("Parse "+(i+1)+": "); 
+		    String parseNum = (resLength == 1) ? "Parse: " : ("Parse "+(i+1)+": ");
 		    System.out.print(parseNum + cat.toString());
 		    if (showsem && convertedLF != null) {
 			System.out.println(" : ");

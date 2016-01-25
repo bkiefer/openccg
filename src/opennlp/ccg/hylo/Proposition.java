@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2003-4 Jason Baldridge and University of Edinburgh (Michael White)
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -20,10 +20,10 @@ package opennlp.ccg.hylo;
 
 import opennlp.ccg.synsem.*;
 import opennlp.ccg.unify.*;
-import org.jdom.*;
+import org.jdom2.*;
 
 /**
- * A propositional value, such as the predicate "sleep", 
+ * A propositional value, such as the predicate "sleep",
  * or the value of a semantic feature, such as "past" for tense.
  * Types are unified if present.
  *
@@ -38,15 +38,15 @@ public class Proposition extends HyloAtom {
 	public Proposition(String name) {
         super(name);
     }
-    
+
     public Proposition(String name, SimpleType st) {
         super(name, st);
     }
-    
+
     public LF copy() {
         return new Proposition(_name, type);
     }
-    
+
     public Object unify(Object u, Substitution sub) throws UnifyFailure {
         // check equality
         if (equals(u)) return this;
@@ -64,7 +64,7 @@ public class Proposition extends HyloAtom {
         // otherwise defer to default routine
         return super.unify(u, sub);
     }
-    
+
     /**
      * Returns an XML representation of this LF.
      */

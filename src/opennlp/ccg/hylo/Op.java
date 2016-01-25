@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2003-5 Jason Baldridge and University of Edinburgh (Michael White)
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -21,12 +21,12 @@ package opennlp.ccg.hylo;
 import opennlp.ccg.synsem.*;
 import opennlp.ccg.unify.*;
 import opennlp.ccg.grammar.Grammar;
-import org.jdom.*;
+import org.jdom2.*;
 import java.util.*;
-import gnu.trove.*;
+import gnu.trove.map.hash.*;
 
 /**
- * A generic operator, such as conjunction, disjunction, exclusive-or, 
+ * A generic operator, such as conjunction, disjunction, exclusive-or,
  * negation or optionality (^, v, v_, ~, ?).
  *
  * @author      Jason Baldridge
@@ -34,31 +34,31 @@ import gnu.trove.*;
  * @version     $Revision: 1.17 $, $Date: 2009/12/21 03:27:19 $
  **/
 public class Op extends HyloFormula {
-    
+
 	private static final long serialVersionUID = -7489598953770901195L;
 
 	/** Conjunction constant. */
     public static final String CONJ = "conj";
-    
+
     /** Disjunction constant. */
     public static final String DISJ = "disj";
-    
+
     /** Exclusive-or constant. */
     public static final String XOR = "xor";
-    
+
     /** Negation constant. */
     public static final String NEG = "neg";
-    
+
     /** Optionality constant. */
     public static final String OPT = "opt";
 
-    
+
     /** The name of the operator (ie its kind). */
     protected final String _name;
-    
+
     /** The args. */
     protected List<LF> _args;
-    
+
     /** Element constructor. */
     @SuppressWarnings("unchecked")
 	public Op(Element e) {
@@ -81,7 +81,7 @@ public class Op extends HyloFormula {
 
     /** Constructor. */
     public Op(String name, List<LF> args) {
-        _name = name; _args = args; 
+        _name = name; _args = args;
     }
 
     /** Two arg convenience constructor. */
@@ -90,25 +90,25 @@ public class Op extends HyloFormula {
         _args = new ArrayList<LF>();
         _args.add(first); _args.add(second);
     }
-    
-	public String getName() { 
+
+	public String getName() {
         return _name;
     }
 
     public List<LF> getArguments() {
         return _args;
     }
-    
+
     public void addArgument(LF formula) {
         _args.add(formula);
     }
-    
+
     /**
      * Appends the args if the given lf is a CONJ op,
      * otherwise just adds it.
      */
     public void appendArgs(LF lf) {
-        if (lf instanceof Op && ((Op)lf).getName().equals(Op.CONJ)) 
+        if (lf instanceof Op && ((Op)lf).getName().equals(Op.CONJ))
             _args.addAll(((Op)lf).getArguments());
         else _args.add(lf);
     }
@@ -147,7 +147,7 @@ public class Op extends HyloFormula {
         if (!opArgs.containsAll(_args)) return false;
         return true;
     }
-    
+
     /** Unification is not attempted for Ops. */
     public void unifyCheck(Object u) throws UnifyFailure {
         throw new UnifyFailure();
@@ -157,7 +157,7 @@ public class Op extends HyloFormula {
     public Object unify(Object u, Substitution s) throws UnifyFailure {
         throw new UnifyFailure();
     }
-    
+
     public Object fill(Substitution sub) throws UnifyFailure {
         List<LF> $args = new ArrayList<LF>(_args.size());
         for (LF arg : _args) {
@@ -165,7 +165,7 @@ public class Op extends HyloFormula {
         }
         return new Op(_name, $args);
     }
-    
+
     public String toString() {
         StringBuffer sb = new StringBuffer();
         String opString = printOp(_name);
@@ -183,7 +183,7 @@ public class Op extends HyloFormula {
         }
         return sb.toString();
     }
-    
+
     /**
      * Returns a pretty-printed string of this LF, with the given indent.
      */
@@ -204,7 +204,7 @@ public class Op extends HyloFormula {
         }
         return sb.toString();
     }
-    
+
     public static String printOp(String o) {
         if (o.equals(CONJ))      return "^";
         else if (o.equals(DISJ)) return "v";
@@ -213,7 +213,7 @@ public class Op extends HyloFormula {
         else if (o.equals(OPT))  return "?";
         else                     return o;
     }
-    
+
     // filters out semantic features if apropos
     private List<LF> filteredArgs() {
         String featsToShow = Grammar.theGrammar.prefs.featsToShow;
@@ -222,7 +222,7 @@ public class Op extends HyloFormula {
         for (Iterator<LF> it = _args.iterator(); it.hasNext(); ) {
             LF arg = it.next();
             String attr = null;
-            if (arg instanceof SatOp && HyloHelper.isAttrPred(arg)) 
+            if (arg instanceof SatOp && HyloHelper.isAttrPred(arg))
                 attr = HyloHelper.getRel(arg);
             else if (arg instanceof Diamond && HyloHelper.isAttr(arg))
                 attr = ((Diamond)arg).getMode().toString();
@@ -240,11 +240,11 @@ public class Op extends HyloFormula {
         }
         return retval;
     }
-    
+
     /**
      * Returns a hash code using the given map from vars to ints.
      */
-    public int hashCode(TObjectIntHashMap varMap) { 
+    public int hashCode(TObjectIntHashMap varMap) {
         int retval = _name.hashCode();
         for (Iterator<LF> it = _args.iterator(); it.hasNext(); ) {
             LF arg = it.next();
@@ -252,9 +252,9 @@ public class Op extends HyloFormula {
         }
         return retval;
     }
-        
+
     /**
-     * Returns whether this op equals the given object  
+     * Returns whether this op equals the given object
      * up to variable names, using the given maps from vars to ints
      * (where args must be in the same order).
      */
@@ -270,7 +270,7 @@ public class Op extends HyloFormula {
         }
         return true;
     }
-    
+
     /**
      * Returns an XML representation of this LF.
      */

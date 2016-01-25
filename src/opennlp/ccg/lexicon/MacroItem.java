@@ -23,7 +23,7 @@ import opennlp.ccg.unify.*;
 import opennlp.ccg.synsem.*;
 import opennlp.ccg.hylo.HyloHelper;
 
-import org.jdom.*;
+import org.jdom2.*;
 import java.util.*;
 
 /**

@@ -1,17 +1,17 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2003-6 Jason Baldridge, Gann Bierner and 
+// Copyright (C) 2003-6 Jason Baldridge, Gann Bierner and
 //                      Michael White (University of Edinburgh, The Ohio State University)
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -24,9 +24,10 @@ import opennlp.ccg.hylo.*;
 import opennlp.ccg.unify.*;
 import opennlp.ccg.util.*;
 
-import org.jdom.*;
-import org.jdom.output.*;
-import gnu.trove.*;
+import org.jdom2.*;
+import org.jdom2.output.*;
+import gnu.trove.set.hash.*;
+import gnu.trove.strategy.*;
 
 import java.io.*;
 import java.net.*;
@@ -36,9 +37,9 @@ import java.util.*;
  * A set of rules for combining categories.
  * Observed rule combos can be cached, either statically or dynamically.
  *
- * During deserialization, the grammar is set to the current grammar, 
+ * During deserialization, the grammar is set to the current grammar,
  * and supercat rule combos are borrowed from the current grammar's rule group.
- * 
+ *
  * @author      Jason Baldridge
  * @author      Gann Bierner
  * @author      Michael White
@@ -50,7 +51,7 @@ public class RuleGroup implements Serializable {
 
 	/** The grammar that this rule group is part of. */
     public transient Grammar grammar;
-    
+
     // rules
     private List<Rule> unaryRules = new ArrayList<Rule>();
     private List<Rule> binaryRules = new ArrayList<Rule>();
@@ -58,17 +59,17 @@ public class RuleGroup implements Serializable {
     // maps of type changing rules by their semantics
     private GroupMap<String,TypeChangingRule> predsToRules = new GroupMap<String,TypeChangingRule>();
     private GroupMap<String,TypeChangingRule> relsToRules = new GroupMap<String,TypeChangingRule>();
-    
+
     // rule for use in applying coarticulations
     private BackwardApplication bapp = new BackwardApplication();
 
     // glue rule
     private GlueRule glueRule = new GlueRule();
-    
+
     // supercat-rule combos, to support filtering on observed ones
     private class SupercatRuleCombo {
     	// NB: strings must be interned
-		private String supercat; 
+		private String supercat;
     	private String supercat2;
     	private String rule;
     	// unary rule constructor
@@ -115,24 +116,22 @@ public class RuleGroup implements Serializable {
     		return sb.toString();
     	}
     }
-    
+
     // class for seen combos when determined dynamically
     // nb: for space efficiency, allows representative to be retrieved from set
-    private static class SupercatComboSet extends THashSet {
-		private static final long serialVersionUID = 1L;
-		SupercatComboSet() {
-    		super(
-    	        new TObjectHashingStrategy() {
-					private static final long serialVersionUID = 1L;
-					public int computeHashCode(Object o) {
-    					return (o instanceof SupercatRuleCombo) ? ((SupercatRuleCombo)o).supercatHashCode() : 0;
-    	            }
-    	            public boolean equals(Object o1, Object o2) {
-    					return (o1 instanceof SupercatRuleCombo) ? ((SupercatRuleCombo)o1).supercatEquals(o2) : false;
-    	            }
-    	        }
-        	);
-    	}
+    private static class SupercatComboSet extends TCustomHashSet<SupercatRuleCombo> {
+      private static final long serialVersionUID = 1L;
+      SupercatComboSet() {
+        super(new HashingStrategy<SupercatRuleCombo>() {
+          private static final long serialVersionUID = 1L;
+          public int computeHashCode(SupercatRuleCombo o) {
+            return o.supercatHashCode();
+          }
+          public boolean equals(SupercatRuleCombo o1, SupercatRuleCombo o2) {
+            return o1.supercatEquals(o2);
+          }
+        });
+      }
     	// return the seen combo, or null if none
     	SupercatRuleCombo get(SupercatRuleCombo combo) {
     		int index = index(combo);
@@ -140,19 +139,19 @@ public class RuleGroup implements Serializable {
     		return (SupercatRuleCombo) this._set[index];
     	}
     }
-    
+
     // observed supercat-rule combos
     private transient Set<SupercatRuleCombo> supercatRuleCombos = null;
-    
+
     // observed supercat combos (for which complete rule combos are known)
     private transient SupercatComboSet supercatCombosSeen = null;
-    
+
     // reusable combo for checking presence
     private transient SupercatRuleCombo combo = new SupercatRuleCombo("dummy", "dummy");
-    
+
     // flag for whether observed supercat combos is determined dynamically
     private boolean dynamicCombos = false;
-    
+
     /**
      * Constructs an empty rule group for the given grammar.
      */
@@ -160,16 +159,16 @@ public class RuleGroup implements Serializable {
         this.grammar = grammar;
         bapp.setRuleGroup(this);
     }
-    
+
     /**
-     * Constructs a rule group from the given URL, for 
+     * Constructs a rule group from the given URL, for
      * the given grammar.
      */
     public RuleGroup(URL url, Grammar grammar) throws IOException {
 
         this.grammar = grammar;
         bapp.setRuleGroup(this);
-        
+
         XmlScanner ruleScanner = new XmlScanner() {
         	public void handleElement(Element ruleEl) {
                 String active = ruleEl.getAttributeValue("active");
@@ -185,15 +184,15 @@ public class RuleGroup implements Serializable {
         ruleScanner.parse(url);
     }
 
-    
+
     // during deserialization, sets grammar to the current grammar
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
     	in.defaultReadObject();
     	grammar = Grammar.theGrammar;
     	borrowSupercatRuleCombos(grammar.rules);
     }
-    
-    
+
+
     // reads in a rule
     private Rule readRule(Element ruleEl) {
         Rule r;
@@ -249,10 +248,10 @@ public class RuleGroup implements Serializable {
         }
         return r;
     }
-    
+
     // reads in a type changing rule
     private Rule readTypeChangingRule(Element ruleEl) {
-        
+
         String rname = ruleEl.getAttributeValue("name");
         Element argCatElt = (Element)ruleEl.getChild("arg").getChildren().get(0);
         Category arg = CatReader.getCat(argCatElt);
@@ -263,7 +262,7 @@ public class RuleGroup implements Serializable {
         if (lfElt != null) {
             firstEP = HyloHelper.firstEP(HyloHelper.getLF(lfElt));
         }
-        
+
         grammar.lexicon.propagateTypes(result, arg);
         grammar.lexicon.propagateDistributiveAttrs(result, arg);
         grammar.lexicon.expandInheritsFrom(result, arg);
@@ -273,7 +272,7 @@ public class RuleGroup implements Serializable {
 
     /**
      * Writes the rules to an XML file with the given name.
-     * @throws IOException 
+     * @throws IOException
      */
     public void toXml(String filename) throws IOException {
     	XMLOutputter xout = new XMLOutputter();
@@ -281,7 +280,7 @@ public class RuleGroup implements Serializable {
     	PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(filename)));
     	out.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
     	out.println("<rules name=\"" + grammar.getName() + "\">");
-    	for (Rule r : binaryRules) { 
+    	for (Rule r : binaryRules) {
     		xout.output(r.toXml(), out); out.println();
     	}
     	for (Rule r : unaryRules) {
@@ -290,9 +289,9 @@ public class RuleGroup implements Serializable {
     	out.println("</rules>");
     	out.flush(); out.close();
     }
-    
+
     /**
-     * Sets the dynamic combos flag to the given value, controlling whether the 
+     * Sets the dynamic combos flag to the given value, controlling whether the
      * observed supercat combos is determined dynamically.
      */
     public void setDynamicCombos(boolean dynamic) {
@@ -303,16 +302,16 @@ public class RuleGroup implements Serializable {
     		if (supercatRuleCombos == null) supercatRuleCombos = new HashSet<SupercatRuleCombo>();
     	}
     }
-    
+
     /**
      * Returns the dynamic combos flag.
      */
     public boolean getDynamicCombos() { return dynamicCombos; }
-    
-    /** 
-     * Loads the observed supercat-rule combos, for filtering. 
+
+    /**
+     * Loads the observed supercat-rule combos, for filtering.
      * Only file URLs are supported at present.
-     * Missing files are ignored. 
+     * Missing files are ignored.
      **/
     public void loadSupercatRuleCombos(URL url) throws IOException {
     	supercatRuleCombos = new HashSet<SupercatRuleCombo>();
@@ -339,15 +338,15 @@ public class RuleGroup implements Serializable {
     	}
     	in.close();
     }
-    
-    
+
+
     /** Borrows the observed supercat-rule combos from the given rule group. */
     public void borrowSupercatRuleCombos(RuleGroup ruleGroup) {
     	supercatRuleCombos = ruleGroup.supercatRuleCombos;
     	supercatCombosSeen = ruleGroup.supercatCombosSeen;
     }
-    
-    
+
+
     /** Adds the given rule. */
     public void addRule(Rule r) {
         r.setRuleGroup(this);
@@ -355,8 +354,8 @@ public class RuleGroup implements Serializable {
             unaryRules.add(r);
             index((TypeChangingRule)r);
         }
-        else if (r.arity() == 1) { unaryRules.add(r); } 
-        else if (r.arity() == 2) { binaryRules.add(r); } 
+        else if (r.arity() == 1) { unaryRules.add(r); }
+        else if (r.arity() == 2) { binaryRules.add(r); }
         else {
             // shouldn't happen
             throw new RuntimeException("Can't determine arity of rule: " + r);
@@ -368,17 +367,17 @@ public class RuleGroup implements Serializable {
         LF firstEP = rule.getFirstEP();
         if (firstEP == null) { return; }
         String pred = HyloHelper.getLexPred(firstEP);
-        if (pred != null) { 
-            predsToRules.put(pred, rule); 
-            return; 
+        if (pred != null) {
+            predsToRules.put(pred, rule);
+            return;
         }
         String rel = HyloHelper.getRel(firstEP);
-        if (rel != null) { 
+        if (rel != null) {
             relsToRules.put(rel, rule);
         }
     }
-    
-    
+
+
     /** Returns the unary rules. */
     public List<Rule> getUnaryRules() { return unaryRules; }
 
@@ -396,15 +395,15 @@ public class RuleGroup implements Serializable {
         }
         return null;
     }
-    
+
     /**
-     * Returns the type changing rules indexed by the given lexical predicate. 
+     * Returns the type changing rules indexed by the given lexical predicate.
      * The type changing rules are indexed by their first elementary predication.
      */
     public Collection<TypeChangingRule> getRulesForPred(String pred) {
         return predsToRules.get(pred);
     }
-    
+
     /**
      * Returns the type changing rules indexed by the given relation.
      * The type changing rules are indexed by their first elementary predication.
@@ -412,8 +411,8 @@ public class RuleGroup implements Serializable {
     public Collection<TypeChangingRule> getRulesForRel(String rel) {
         return relsToRules.get(rel);
     }
-    
-    
+
+
     /** Applies the unary rules to the given input sign, returning the list of results. */
     public List<Sign> applyUnaryRules(Sign input) {
     	Sign[] inputs = { input };
@@ -430,7 +429,7 @@ public class RuleGroup implements Serializable {
         }
         // skip if possible
         if (skip) return results;
-        // try each rule 
+        // try each rule
         for (Rule r : unaryRules) {
         	// filter on observed supercat-rule combos, if any, if not updating
         	if (!dynamicCombosUpdate && supercatRuleCombos != null) {
@@ -445,7 +444,7 @@ public class RuleGroup implements Serializable {
             	if (results.size() > prevsize) {
             		SupercatRuleCombo newCombo = null;
             		combo.setCombo(supertag, r.name());
-            		if (!supercatRuleCombos.contains(combo)) { 
+            		if (!supercatRuleCombos.contains(combo)) {
             			newCombo = new SupercatRuleCombo(supertag, r.name());
             			supercatRuleCombos.add(newCombo);
             		}
@@ -469,7 +468,7 @@ public class RuleGroup implements Serializable {
         // done
         return results;
     }
-    
+
     /** Applies the binary rules to the given input signs, returning the list of results. */
     public List<Sign> applyBinaryRules(Sign input1, Sign input2) {
     	Sign[] inputs = { input1, input2 };
@@ -502,7 +501,7 @@ public class RuleGroup implements Serializable {
             	if (results.size() > prevsize) {
             		SupercatRuleCombo newCombo = null;
             		combo.setCombo(supertag1, supertag2, r.name());
-            		if (!supercatRuleCombos.contains(combo)) { 
+            		if (!supercatRuleCombos.contains(combo)) {
             			newCombo = new SupercatRuleCombo(supertag1, supertag2, r.name());
             			supercatRuleCombos.add(newCombo);
             		}
@@ -526,8 +525,8 @@ public class RuleGroup implements Serializable {
         // done
         return results;
     }
-    
-    
+
+
     /** Applies the glue rule to the given input signs, returning the list of results. */
     public List<Sign> applyGlueRule(Sign input1, Sign input2) {
     	Sign[] inputs = { input1, input2 };
@@ -536,16 +535,16 @@ public class RuleGroup implements Serializable {
         return results;
     }
 
-    
+
     /** Applies the coarticulation to the given sign, adding the result (if any) to the given ones. */
     public void applyCoart(Sign lexSign, Sign coartSign, List<Sign> results) {
 
-        Category[] cats = new Category[] { lexSign.getCategory(), coartSign.getCategory() }; 
+        Category[] cats = new Category[] { lexSign.getCategory(), coartSign.getCategory() };
 
         try {
             List<Category> resultCats = bapp.applyRule(cats);
             if (resultCats.isEmpty()) return;
-            
+
             for (Iterator<Category> it = resultCats.iterator(); it.hasNext();) {
                 Category catResult = it.next();
                 bapp.distributeTargetFeatures(catResult);

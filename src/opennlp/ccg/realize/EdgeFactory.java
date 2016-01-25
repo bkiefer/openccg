@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2003-11 University of Edinburgh / Michael White
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -26,13 +26,14 @@ import opennlp.ccg.synsem.*;
 import opennlp.ccg.hylo.*;
 import opennlp.ccg.util.*;
 
-import gnu.trove.*;
+import gnu.trove.map.hash.*;
+import gnu.trove.list.array.*;
 
 import java.util.*;
 import java.util.prefs.*;
 
 /**
- * The EdgeFactory is responsible for creating edges. 
+ * The EdgeFactory is responsible for creating edges.
  * A single edge factory instance per realization request is assumed.
  *
  * @author      Michael White
@@ -43,30 +44,30 @@ public class EdgeFactory
 
     /** Preference key for whether to use indexing to filter edges to combine. */
     public static final String USE_INDEXING = "Use Indexing";
-    
+
     /** Preference key for whether to (exceptionally) allow categories with no target cat index nominal to combine. */
     public static final String ALLOW_MISSING_INDEX_COMBOS = "Allow Missing Index Combos";
-    
+
     /** Preference key for whether to use LF chunks to filter edges to combine. */
     public static final String USE_CHUNKS = "Use Chunks";
-    
-    /** Preference key for whether to use feature licensing; if false, 
+
+    /** Preference key for whether to use feature licensing; if false,
         the simple lex feature is used for comparison purposes. */
     public static final String USE_FEATURE_LICENSING = "Use Feature Licensing";
-    
 
-    /** The grammar used to create edges. */    
+
+    /** The grammar used to create edges. */
     public final Grammar grammar;
-    
+
     /** The elementary predications to be covered. */
     public final List<SatOp> preds;
-    
+
     /** The sign scorer. */
     public final SignScorer signScorer;
-    
+
     /** The hypertagger. */
     public final Hypertagger hypertagger;
-    
+
     /** The initial, unmarked edges instantiated after lexical lookup. */
     public final List<Edge> initialEdges = new ArrayList<Edge>();
 
@@ -75,95 +76,95 @@ public class EdgeFactory
 
     /** The licensed and instantiated purely syntactic (semantically null) edges. */
     public final List<Edge> instantiatedNoSemEdges = new ArrayList<Edge>();
-    
+
     /** The licensed, uninstantiated purely syntactic edges. */
     public final List<Edge> noSemEdges = new ArrayList<Edge>();
 
     /** The rule instances, ie the type changing rules with instantiated semantics. */
     public final List<RuleInstance> ruleInstances = new ArrayList<RuleInstance>();
-    
+
     /** The LF chunks, represented as bitsets. */
     public final List<BitSet> lfChunks = new ArrayList<BitSet>();
-    
-    /** The LF alts, represented as a list of lists of alts 
+
+    /** The LF alts, represented as a list of lists of alts
         (where each list of alts forms an exclusive disjunction). */
     public final List<List<Alt>> lfAlts = new ArrayList<List<Alt>>();
-    
+
     /** The LF optional parts, represented as bitsets. */
     public final List<BitSet> lfOpts = new ArrayList<BitSet>();
-    
+
     /** Flag indicating whether there are any LF alts or optional parts. */
     public boolean hasLfAltsOrOpts = false;
-    
+
     // a bitset for all preds
     private final BitSet allPreds;
-    
-    
-    // the lexicon used to create edges    
+
+
+    // the lexicon used to create edges
     private final Lexicon lexicon;
-    
+
     // general rules, ie the ones with no associated semantics
     private final RuleGroup generalRules;
-    
+
     // rule group for rules wrapped by rule instances
     private final RuleGroup ruleInstancesGroup;
-    
+
     // rule for joining fragments
     private final FragmentJoining fragmentRule = new FragmentJoining();
-    
+
     // helper class for licensing features
     private final FeatureLicenser featureLicenser;
-    
-    
+
+
     /** Set of nominals whose phrases are marked for labeling in the output (with mark=+). */
     public final Set<Nominal> labeledNominals = new HashSet<Nominal>();
-    
+
     /** Map from nominals to ints, for indexing edges. */
     final TObjectIntHashMap nominals = new TObjectIntHashMap();
-    
-    // indexes the preds by their position, 
+
+    // indexes the preds by their position,
     // by mapping pred keys to a list of pred indices for that key
     private final Map<String,List<Integer>> predMap = new HashMap<String,List<Integer>>();
-    
+
     // list of paired nominals in the input LF
     private final List<BitSet[]> pairedNominals = new ArrayList<BitSet[]>();
-    
+
     // flag for whether there are any paired nominals
     private boolean anyPairedNominals = false;
-    
+
     /** Set of nominals under a BoundVar relation. */
     final Set<Nominal> boundVarNominals = new HashSet<Nominal>();
-    
+
     // list of nominals for a particular cat or pair of cats
     private final List<Object> catNominals = new ArrayList<Object>();
-    
-    
-    /** 
-     * Flag for whether to use indexing. 
-     * Setting retrieved from preferences; turned off when gluing fragments. 
+
+
+    /**
+     * Flag for whether to use indexing.
+     * Setting retrieved from preferences; turned off when gluing fragments.
      */
     public boolean useIndexing = true;
 
     // flag for whether to (exceptionally) allow categories with no target cat index nominal to combine
     private boolean allowMissingIndexCombos = false;
-    
+
     // flag for whether to use chunks
     private boolean useChunks = true;
-    
+
     // flag for whether to use feature licensing
     private boolean useFeatureLicensing = true;
 
-    /** 
-     * Flag for whether to debug category instantiation (defaults to false). 
-     * If true, cases of complex categories whose outermost category 
-     * is not instantiated with index nominals are reported to 
-     * System.err. Note that realization is more efficient if such 
+    /**
+     * Flag for whether to debug category instantiation (defaults to false).
+     * If true, cases of complex categories whose outermost category
+     * is not instantiated with index nominals are reported to
+     * System.err. Note that realization is more efficient if such
      * categories can be avoided in the grammar.
      * Uncovered EPs after lex lookup are also reported to System.err.
-     */ 
+     */
     public boolean debugInstantiation = false;
-    
-    
+
+
     /* The number of unary rule applications executed. */
     private int unaryRuleApps = 0;
 
@@ -172,42 +173,42 @@ public class EdgeFactory
 
     /* The number of binary rule applications executed. */
     private int binaryRuleApps = 0;
-    
+
 
     /** Flag for whether to glue fragments currently. Defaults to false. */
     public boolean gluingFragments = false;
 
     /** Bit vector for EPs not covered by a lexical edge or rule instance; null if none. */
     protected BitSet uncoveredEPs = null;
-    
+
     /** Flag indicating whether any lexical or featural EPs are uncovered. */
     public boolean hasUncoveredPreds = false;
-    
+
     /** Flag for whether to use relaxed relation matching. */  // XXX tmp switch
     protected boolean useRelaxedRelationMatching = Boolean.getBoolean("useRelaxedRelationMatching");
-    
-    
+
+
     /** Constructor. */
     public EdgeFactory(Grammar grammar, List<SatOp> preds, SignScorer signScorer) {
     	this(grammar, preds, signScorer, null);
     }
-    
+
     /** Constructor with hypertagger. */
     public EdgeFactory(Grammar grammar, List<SatOp> preds, SignScorer signScorer, Hypertagger hypertagger) {
         this.grammar = grammar;
         this.preds = preds;
         this.signScorer = signScorer;
         this.hypertagger = hypertagger;
-        
+
         lexicon = grammar.lexicon;
         generalRules = new RuleGroup(grammar);
         generalRules.borrowSupercatRuleCombos(grammar.rules);
         ruleInstancesGroup = new RuleGroup(grammar);
         ruleInstancesGroup.borrowSupercatRuleCombos(grammar.rules);
-        
+
         allPreds = new BitSet(preds.size());
         allPreds.set(0, preds.size());
-        
+
         Preferences prefs = Preferences.userNodeForPackage(TextCCG.class);
         useIndexing = prefs.getBoolean(USE_INDEXING, true);
 	allowMissingIndexCombos = prefs.getBoolean(ALLOW_MISSING_INDEX_COMBOS,false);
@@ -219,21 +220,21 @@ public class EdgeFactory
         } else {
             // if feature licensing off, use simple lex feature for comparison purposes
             featureLicenser = new FeatureLicenser(
-                this, 
+                this,
                 new LicensingFeature[] { LicensingFeature.simpleLexFeature }
             );
         }
-            
+
         UnifyControl.startUnifySequence();
         extractLabeledNominals();
         indexPreds();
         listNominals();
         listPairedNominals();
         addBoundVarNominals();
-        fillLfChunks(); 
+        fillLfChunks();
         fillLfAlts(); fillLfOpts();
         hasLfAltsOrOpts = lfAlts.size() > 0 || lfOpts.size() > 0;
-        
+
         if (hypertagger != null) hypertagger.mapPreds(preds);
     }
 
@@ -262,9 +263,9 @@ public class EdgeFactory
     	hasLfAltsOrOpts = true;
 		// TODO deal with lf alts too (may require sorting chunks and alts by size)
     }
-    
+
     /**
-     * Adds an LF optional part for each instantiated rule instance, 
+     * Adds an LF optional part for each instantiated rule instance,
      * for use with fragment gluing.
      */
     public void addLFOptsForRuleInstances() {
@@ -276,7 +277,7 @@ public class EdgeFactory
     	// ensure hasLfAltsOrOpts set
     	if (lfOpts.size() > 0) hasLfAltsOrOpts = true;
     }
-    
+
     // returns the uncovered preds, or null if none
     private BitSet uncoveredPreds() {
     	// determine what's covered by lex items and rule instances
@@ -298,13 +299,13 @@ public class EdgeFactory
 		// return
     	return retval;
     }
-    
-    
+
+
     //-----------------------------------------------------------------
     // edge construction
     //
 
-    /** Makes an edge, computing the completeness percentage, sign score, 
+    /** Makes an edge, computing the completeness percentage, sign score,
         and indices, and setting the most specific incomplete LF chunk (if any). */
     protected Edge makeEdge(Sign sign, BitSet bitset, List<List<Alt>> activeLfAlts) {
         BitSet indices = getIndices(sign.getCategory(), null);
@@ -319,12 +320,12 @@ public class EdgeFactory
     protected Edge makeAltEdge(Sign altSign, Edge edge) {
         double score = signScorer.score(altSign, edge.complete());
         return new Edge(
-        		altSign, edge.bitset, edge.indices, 
-        		edge.completeness, score, 
+        		altSign, edge.bitset, edge.indices,
+        		edge.completeness, score,
         		edge.activeLfAlts, edge.incompleteLfChunk
         );
     }
-    
+
     /** Makes an edge consisting of two joined fragments. */
     public Edge makeJoinedEdge(Edge edge1, Edge edge2) {
     	Sign sign = fragmentRule.applyRule(edge1.sign, edge2.sign);
@@ -334,30 +335,30 @@ public class EdgeFactory
         boolean complete = (completeness == 1.0);
         double score = signScorer.score(sign, complete);
         return new Edge(
-        		sign, bitset, edge1.indices, 
-        		completeness, score, 
+        		sign, bitset, edge1.indices,
+        		completeness, score,
         		edge1.activeLfAlts, edge1.incompleteLfChunk
         );
     }
-    
-    
+
+
     //-----------------------------------------------------------------
     // active alts
     //
 
-    /** From the given LF alts, returns the active ones for the given bitset, 
-        updating the bitset for any completely covered alts. 
+    /** From the given LF alts, returns the active ones for the given bitset,
+        updating the bitset for any completely covered alts.
         NB: If the given LF alts list is not the entire list, each alt is assumed to intersect. */
     private List<List<Alt>> getActiveLfAlts(List<List<Alt>> fromLfAlts, BitSet bitset) {
         if (fromLfAlts.isEmpty()) return fromLfAlts;
         boolean checkingAllAlts = (fromLfAlts == lfAlts);
         BitSet tmpBitSet = new BitSet(bitset.size());
         List<List<Alt>> retval = new ArrayList<List<Alt>>(fromLfAlts.size());
-        // check each 'from' alt 
+        // check each 'from' alt
         for (List<Alt> altSet : fromLfAlts) {
             List<Alt> activeAltSet = null; // for collecting active alts
             boolean foundCoveredAlt = false;
-            for (Alt alt : altSet) { 
+            for (Alt alt : altSet) {
                 // if checking all alts, check intersection with alt
                 if (!checkingAllAlts || alt.bitset.intersects(bitset)) {
                     // check whether alt completely covered
@@ -375,7 +376,7 @@ public class EdgeFactory
             if (foundCoveredAlt) {
                 // update coverage bitset to include all alts in this set
                 List<Alt> fullAltSet = lfAlts.get(altSet.get(0).altSet);
-                for (Alt alt : fullAltSet) bitset.or(alt.bitset); 
+                for (Alt alt : fullAltSet) bitset.or(alt.bitset);
             }
             else {
                 // otherwise update active alts, if any
@@ -384,12 +385,12 @@ public class EdgeFactory
         }
         return retval;
     }
-    
-    /** Returns the active LF alts that result from combining the given ones, 
+
+    /** Returns the active LF alts that result from combining the given ones,
         or null if these are incompatible.
-        For alt sets in common, the combined alts consist of the intersection 
+        For alt sets in common, the combined alts consist of the intersection
         of these alt sets, or null if this intersection is empty.
-        For alts sets not in common, the active alts are carried through 
+        For alts sets not in common, the active alts are carried through
         unchanged. */
     private List<List<Alt>> getCombinedLfAlts(List<List<Alt>> activeLfAlts1, List<List<Alt>> activeLfAlts2) {
         if (activeLfAlts1.isEmpty()) return activeLfAlts2;
@@ -399,7 +400,7 @@ public class EdgeFactory
         List<Alt> altSet1 = it1.next(); List<Alt> altSet2 = it2.next();
         for (int i = 0; i < lfAlts.size(); i++) {
             // inc to alt set i, if not yet there (or beyond)
-            if (altSet1.get(0).altSet < i && it1.hasNext()) altSet1 = it1.next(); 
+            if (altSet1.get(0).altSet < i && it1.hasNext()) altSet1 = it1.next();
             if (altSet2.get(0).altSet < i && it2.hasNext()) altSet2 = it2.next();
             // check whether only one or the other has alt set i
             if (altSet1.get(0).altSet == i && altSet2.get(0).altSet != i) retval.add(altSet1);
@@ -410,7 +411,7 @@ public class EdgeFactory
                 for (Alt alt : altSet1) {
                     if (altSet2.contains(alt)) combined.add(alt);
                 }
-                // check for empty intersection, returning null 
+                // check for empty intersection, returning null
                 if (combined.isEmpty()) return null;
                 // otherwise add combined list
                 retval.add(combined);
@@ -418,8 +419,8 @@ public class EdgeFactory
         }
         return retval;
     }
-    
-    
+
+
     //-----------------------------------------------------------------
     // misc bookkeeping
     //
@@ -437,21 +438,21 @@ public class EdgeFactory
             it.remove();
         }
     }
-    
+
     // lists the nominals in the preds
     private void listNominals() {
     	for (SatOp pred : preds) {
             Nominal nom1 = HyloHelper.getPrincipalNominal(pred);
             Nominal nom2 = HyloHelper.getSecondaryNominal(pred);
-            if (nom1 instanceof NominalAtom && !nominals.containsKey(nom1)) { 
-                nominals.put(nom1, nominals.size()); 
+            if (nom1 instanceof NominalAtom && !nominals.containsKey(nom1)) {
+                nominals.put(nom1, nominals.size());
             }
-            if (nom2 instanceof NominalAtom && !nominals.containsKey(nom2)) { 
-                nominals.put(nom2, nominals.size()); 
+            if (nom2 instanceof NominalAtom && !nominals.containsKey(nom2)) {
+                nominals.put(nom2, nominals.size());
             }
         }
     }
-    
+
     // create bitset for cat indices
     private BitSet getIndices(Category cat, Category cat2) {
         catNominals.clear();
@@ -466,8 +467,8 @@ public class EdgeFactory
         return retval;
     }
 
-    // check for uninstantiated outer args; if found,  
-    // set the indices to allow all combos, and issue 
+    // check for uninstantiated outer args; if found,
+    // set the indices to allow all combos, and issue
     // a warning if the debugInstantiation flag is set
     private void checkInstantiation(List<Edge> edges) {
         for (int i = 0; i < edges.size(); i++) {
@@ -481,7 +482,7 @@ public class EdgeFactory
             }
         }
     }
-        
+
     // returns whether the outermost arg is not instantiated
     private boolean outerArgUninstantiated(Category cat) {
         if (!(cat instanceof ComplexCat)) return false;
@@ -490,7 +491,7 @@ public class EdgeFactory
         outer.forall(gatherIndices);
         return catNominals.isEmpty();
     }
-    
+
     // gathers values of index feature in atomic cats
     private CategoryFcn gatherIndices = new CategoryFcnAdapter() {
         public void forall(Category c) {
@@ -501,10 +502,10 @@ public class EdgeFactory
             addCatNominal(fs.getValue("mod-index"));
         }
     };
-    
+
     // adds a nominal atom to catNominals
     private void addCatNominal(Object indexVal) {
-        if (indexVal instanceof NominalAtom) { 
+        if (indexVal instanceof NominalAtom) {
             if (!catNominals.contains(indexVal)) { catNominals.add(indexVal); }
         }
     }
@@ -542,7 +543,7 @@ public class EdgeFactory
             anyPairedNominals = true;
         }
     }
-    
+
     // adds the bound var nominals
     private void addBoundVarNominals() {
         for (int i=0; i < preds.size(); i++) {
@@ -571,7 +572,7 @@ public class EdgeFactory
             }
         }
     }
-    
+
     /**
      * Returns whether the indices for the two edges are paired in the input LF.
      */
@@ -584,7 +585,7 @@ public class EdgeFactory
         }
         return false;
     }
-    
+
 
     // indexes the preds by their position into predMap
     private void indexPreds() {
@@ -592,7 +593,7 @@ public class EdgeFactory
             String[] keys = predKeys(preds.get(i));
             for (int j=0; j < keys.length; j++) {
                 List<Integer> indices = predMap.get(keys[j]);
-                if (indices == null) { 
+                if (indices == null) {
                     indices = new ArrayList<Integer>(1);
                     predMap.put(keys[j], indices);
                 }
@@ -611,16 +612,16 @@ public class EdgeFactory
         String rel = HyloHelper.getRel(pred);
         Nominal nom2 = HyloHelper.getSecondaryNominal(pred);
         List<String> keys = new ArrayList<String>(2);
-        if (nom instanceof NominalAtom && lexPred != null) 
+        if (nom instanceof NominalAtom && lexPred != null)
             keys.add(nom.toString() + "(" + lexPred + ")");
-        if (nom instanceof NominalAtom && rel != null) 
+        if (nom instanceof NominalAtom && rel != null)
             keys.add(nom.toString() + "<" + rel + ">");
-        if (nom2 instanceof NominalAtom && rel != null) 
+        if (nom2 instanceof NominalAtom && rel != null)
             keys.add("<" + rel + ">" + nom2.toString());
         return (String[]) keys.toArray(new String[keys.size()]);
     }
-    
-    // fills in the LF chunks list with the chunks for each pred, 
+
+    // fills in the LF chunks list with the chunks for each pred,
     // then sorts them by specificity, from most to least
     private void fillLfChunks() {
         // for each pred, fill in chunks
@@ -653,7 +654,7 @@ public class EdgeFactory
             lfChunks.add(chunk);
         }
     }
-    
+
     // gets the most specific incomplete chunk for an edge, or null
     private BitSet getIncompleteLfChunk(BitSet bitset, List<List<Alt>> activeLfAlts) {
         // check each chunk
@@ -684,7 +685,7 @@ public class EdgeFactory
 		tmpBitSet.andNot(bitset2);
 		return tmpBitSet.isEmpty();
 	}
-    
+
     // returns true iff combining the edges would complete a chunk
 	private boolean completesChunk(Edge edgeA, Edge edgeB) {
 		if (edgeA.incompleteLfChunk != null) {
@@ -701,7 +702,7 @@ public class EdgeFactory
 		}
 		return false;
 	}
-	
+
     // fills in the LF alts list with the alts for each pred
     private void fillLfAlts() {
         // for each pred
@@ -730,7 +731,7 @@ public class EdgeFactory
             }
         }
     }
-    
+
     // fills in the LF opts list with the opts for each pred
     private void fillLfOpts() {
         // for each pred
@@ -751,8 +752,8 @@ public class EdgeFactory
             }
         }
     }
-    
-    
+
+
     // returns the list of coart rels for the pred with the given index
     // NB: assumes that preds are sorted by their principal nominals, with the lex pred first
     private List<String> getCoartRels(int predIndex) {
@@ -763,7 +764,7 @@ public class EdgeFactory
         	SatOp relPred = preds.get(i);
             if (!nom.equals(HyloHelper.getPrincipalNominal(relPred))) break;
             String rel = HyloHelper.getRel(relPred);
-            if (rel != null && grammar.lexicon.isCoartRel(rel)) { 
+            if (rel != null && grammar.lexicon.isCoartRel(rel)) {
                 if (retval == null) retval = new ArrayList<String>(3);
                 retval.add(rel);
             }
@@ -771,26 +772,26 @@ public class EdgeFactory
         return retval;
     }
 
-    
+
     //-----------------------------------------------------------------
     // createInitialEdges
     //
 
-    /** 
+    /**
      * Creates and returns all initial edges.
-     * In particular, initializes all lexical edges that cover some of the input semantics;  
-     * also initializes edges for semantically null lexical items, 
-     * and initializes instances of type changing rules which 
+     * In particular, initializes all lexical edges that cover some of the input semantics;
+     * also initializes edges for semantically null lexical items,
+     * and initializes instances of type changing rules which
      * introduce their own semantics.
      * If a hypertagger is in place, only the beta-best edges are returned for each EP.
      */
     public List<Edge> createInitialEdges() {
 
         // marked initial edges that need to be licensed
-        List<Edge> markedEdgesForLicensing = new ArrayList<Edge>(); 
-        
-        // for each pred, create edges for signs indexed 
-        // by lexical preds and by indexed rels; 
+        List<Edge> markedEdgesForLicensing = new ArrayList<Edge>();
+
+        // for each pred, create edges for signs indexed
+        // by lexical preds and by indexed rels;
         // and similarly for type changing rules
         for (int i=0; i < preds.size(); i++) {
         	SatOp pred = preds.get(i);
@@ -799,7 +800,7 @@ public class EdgeFactory
             // skip if no lex pred or indexed rel (not expected)
             if (key == null && rel == null) continue;
             // update hypertagger for beta-best lookup
-            if (hypertagger != null) hypertagger.setPred(i); 
+            if (hypertagger != null) hypertagger.setPred(i);
             Collection<Sign> signs = new ArrayList<Sign>();
             Collection<TypeChangingRule> typeChangingRules = new ArrayList<TypeChangingRule>();
             // add signs and rules for lex pred
@@ -836,7 +837,7 @@ public class EdgeFactory
             for (TypeChangingRule rule : typeChangingRules) {
                 List<RuleInstance> ruleInstancesForRule = createRuleInstances(rule, i);
                 if (ruleInstancesForRule != null) {
-                    for (RuleInstance ruleInst : ruleInstancesForRule) { 
+                    for (RuleInstance ruleInst : ruleInstancesForRule) {
                         ruleInstances.add(ruleInst);
                         featureLicenser.updateFeatureMap(ruleInst.rule.getArg());
                         featureLicenser.updateFeatureMap(ruleInst.rule.getResult());
@@ -844,7 +845,7 @@ public class EdgeFactory
                 }
             }
         }
-        
+
         // add licensed, marked initial edges
         int prevSize;
         do { // while list size is changing
@@ -862,43 +863,43 @@ public class EdgeFactory
                 }
             }
         } while (markedEdgesForLicensing.size() != prevSize);
-        
+
         // initialize general rules
         initGeneralRules();
 
-        // initialize edges for semantically null lexical items        
+        // initialize edges for semantically null lexical items
         initNoSemEdges();
-        
+
         // collect all initial edges
         List<Edge> retval = new ArrayList<Edge>(
-            initialEdges.size() + markedEdges.size() + 
+            initialEdges.size() + markedEdges.size() +
             instantiatedNoSemEdges.size() + noSemEdges.size()
         );
         retval.addAll(initialEdges);
         retval.addAll(markedEdges);
         retval.addAll(instantiatedNoSemEdges);
         retval.addAll(noSemEdges);
-        
+
         // check instantiation of outermost cats
         checkInstantiation(retval);
-        
+
         // set uncovered EPs
         uncoveredEPs = uncoveredPreds();
         // warn if EPs missing and debug instantiation flag set
         if (uncoveredEPs != null && debugInstantiation) {
         	System.err.println("Warning, uncovered preds after lex instantiation: " + Edge.toString(uncoveredEPs));
         }
-        
+
         // set opts for missing relations, if apropos
         if (useRelaxedRelationMatching) addLFOptsForUncoveredPreds();
-        	
+
         // return
         return retval;
     }
-    
+
     // return null if LF doesn't unify with preds
     private List<Edge> createInitialEdges(Sign sign, int predIndex) {
-        // get parts of sign 
+        // get parts of sign
         List<Word> words = sign.getWords();
         Category cat = sign.getCategory();
         // instantiate
@@ -928,7 +929,7 @@ public class EdgeFactory
         // and return them
         return retval;
     }
-    
+
     // return null if result LF doesn't unify with preds
     private List<RuleInstance> createRuleInstances(TypeChangingRule rule, int predIndex) {
         // get parts of rule
@@ -964,13 +965,13 @@ public class EdgeFactory
         // and return them
         return retval;
     }
-    
+
 
     // return null if cat LF doesn't unify with preds
     private List<Pair<Substitution,BitSet>> instantiate(Category cat, Category cat2, int predIndex) {
 
         // unify with indexed pred
-        UnifyControl.reindex(cat, cat2); 
+        UnifyControl.reindex(cat, cat2);
         List<SatOp> lfPreds = HyloHelper.getPreds(cat.getLF());
         Substitution subst = null;
         SatOp indexedPred = preds.get(predIndex);
@@ -984,14 +985,14 @@ public class EdgeFactory
                 break;
             } catch (UnifyFailure uf) {}
         }
-        
+
         // if failed, return empty list
         if (lfPredIndex == -1) return null;
-        
+
         // set indexed pred in bitset
         BitSet bitset = new BitSet(preds.size());
         bitset.set(predIndex);
-        
+
         // unify with rest of lfPreds, extending subst/bitset
         List<SatOp> remainingPreds = new ArrayList<SatOp>(lfPreds.size());
         remainingPreds.addAll(lfPreds);
@@ -1015,7 +1016,7 @@ public class EdgeFactory
                 // find matching pred
                 String[] lfPredKeys = predKeys(lfPred);
                 if (lfPredKeys.length == 0) {
-                    // nb: this means the lfPred is underconstrained; 
+                    // nb: this means the lfPred is underconstrained;
                     //     will need to check it later!
                     continue;
                 }
@@ -1028,10 +1029,10 @@ public class EdgeFactory
                 	if (useRelaxedRelationMatching && HyloHelper.isRelPred(lfPred)) continue; // skip
                 	else return null; // fail
                 }
-                // try extending each subst/bitset: 
+                // try extending each subst/bitset:
                 // first swap retval, prev, and clear retval
                 List<Pair<Substitution,BitSet>> tmp = prev;
-                prev = retval; retval = tmp; 
+                prev = retval; retval = tmp;
                 retval.clear();
                 for (Pair<Substitution,BitSet> inst : prev) {
                     Substitution s = inst.a; BitSet b = inst.b;
@@ -1072,16 +1073,16 @@ public class EdgeFactory
                 it.remove();
             }
         }
-        
+
         // check for no more than one (rel) pred left over
         if (remainingPreds.size() > 1) return null;
         // done
         return retval;
     }
-    
-    
+
+
     // returns true iff no alt exclusions are violated
-    // nb: needs to check that if there any intersections 
+    // nb: needs to check that if there any intersections
     //     with multiple alts, then these are only in the shared part
     private boolean checkAlts(BitSet b) {
         for (List<Alt> altSet : lfAlts) {
@@ -1089,7 +1090,7 @@ public class EdgeFactory
             for (Alt alt : altSet) {
                 if (alt.bitset.intersects(b)) intersects++;
             }
-            if (intersects > 1) { // check intersections 
+            if (intersects > 1) { // check intersections
                 for (int i = 0; i < altSet.size(); i++) {
                     Alt alt = altSet.get(i);
                     if (alt.bitset.intersects(b)) {
@@ -1110,36 +1111,36 @@ public class EdgeFactory
         }
         return true;
     }
-    
+
 
     //-----------------------------------------------------------------
     // createNewEdges
     //
 
     /**
-     * Returns all edges that can be created by combining the given edges, 
+     * Returns all edges that can be created by combining the given edges,
      * without collecting combos.
      */
     public List<Edge> createNewEdges(Edge edge, Edge next) {
         return createNewEdges(edge, next, false);
     }
-     
+
     /**
      * Returns all edges that can be created by combining the given edges;
-     * if the collectCombos flag is true, the edges are updated with collected combos, 
-     * and additional alt edges are made for the remaining alternative edges for 
+     * if the collectCombos flag is true, the edges are updated with collected combos,
+     * and additional alt edges are made for the remaining alternative edges for
      * the given first edge.
      */
     public List<Edge> createNewEdges(Edge edge, Edge next, boolean collectCombos) {
-        
+
         // check for sem overlap
         if (edge.intersects(next)) return Collections.emptyList();
         // check LF chunk constraints
         if (useChunks) {
-            if (!edge.meetsLfChunkConstraints(next) || 
+            if (!edge.meetsLfChunkConstraints(next) ||
                 !next.meetsLfChunkConstraints(edge)) return Collections.emptyList();
         }
-        
+
         // make new edges ...
         List<Edge> newEdges = null;
         // when using indexing:
@@ -1163,12 +1164,12 @@ public class EdgeFactory
                 newEdges = createNewEdges(edge, next, collectCombos, true);
             }
             else { return Collections.emptyList(); }
-        } 
+        }
         // otherwise try everything
         else {
             newEdges = createNewEdges(edge, next, collectCombos, true);
         }
-        
+
         // make alt edges for rest of edge's alts, with collectCombos option
         if (collectCombos && edge.altEdges.size() > 0) {
             int numNewEdges = newEdges.size(); // get num before adding any more
@@ -1177,27 +1178,27 @@ public class EdgeFactory
                 Sign resultSign = resultEdge.sign;
                 Category resultCat = resultSign.getCategory();
                 Rule rule = resultSign.getDerivationHistory().getRule();
-                Sign[] resultInputs = resultSign.getDerivationHistory().getInputs(); 
+                Sign[] resultInputs = resultSign.getDerivationHistory().getInputs();
                 boolean rightward = (resultInputs[0] == next.sign);
                 boolean lefthead = (resultSign.getLexHead() == resultInputs[0].getLexHead());
                 for (int j = 0; j < edge.altEdges.size(); j++) {
                     Edge furtherEdge = edge.altEdges.get(j);
                     if (furtherEdge == edge) continue;
-                    Sign[] signs = (rightward) 
+                    Sign[] signs = (rightward)
                         ? new Sign[] { next.sign, furtherEdge.sign }
                         : new Sign[] { furtherEdge.sign, next.sign };
-                    Sign lexHead = (rightward == lefthead) 
-                    	? next.sign.getLexHead() 
-            			: furtherEdge.sign.getLexHead(); 
+                    Sign lexHead = (rightward == lefthead)
+                    	? next.sign.getLexHead()
+            			: furtherEdge.sign.getLexHead();
                 	Sign altSign = Sign.createDerivedSignWithNewLF(resultCat, signs, rule, lexHead);
                     newEdges.add(makeAltEdge(altSign, resultEdge));
                 }
             }
         }
-        
+
         // check instantiation of outermost cats
         checkInstantiation(newEdges);
-        
+
         // done
         return newEdges;
     }
@@ -1205,30 +1206,30 @@ public class EdgeFactory
     // creates edges, combining in one or both directions per flag
     private List<Edge> createNewEdges(Edge edgeA, Edge edgeB, boolean collectCombos, boolean bothDirections) {
 
-        // get combined alts, checking compatibility        
+        // get combined alts, checking compatibility
         List<List<Alt>> combinedLfAlts = getCombinedLfAlts(edgeA.activeLfAlts, edgeB.activeLfAlts);
         if (combinedLfAlts == null) return Collections.emptyList();
-        
+
         // check whether a chunk is completed when gluing fragments
         boolean fragCompletion = false;
         if (gluingFragments) fragCompletion = completesChunk(edgeA, edgeB);
-        
+
         // A B combos
         List<Sign> results;
         if (gluingFragments) results = generalRules.applyGlueRule(edgeA.sign, edgeB.sign);
         else results = generalRules.applyBinaryRules(edgeA.sign, edgeB.sign);
-        binaryRuleApps++; 
+        binaryRuleApps++;
         int numResults = results.size();
-        
+
         // B A combos
         List<Sign> reversedResults = Collections.emptyList();
         if (bothDirections) {
         	if (gluingFragments) reversedResults = generalRules.applyGlueRule(edgeB.sign, edgeA.sign);
         	else reversedResults = generalRules.applyBinaryRules(edgeB.sign, edgeA.sign);
-            binaryRuleApps++; 
+            binaryRuleApps++;
         }
         int numReversedResults = reversedResults.size();
-        
+
         // make edges to return, updating edge combos (if apropos)
         List<Edge> retval = Collections.emptyList();
         if (numResults + numReversedResults > 0) {
@@ -1242,7 +1243,7 @@ public class EdgeFactory
             for (int i = 0; i < numResults; i++) {
                 Sign sign = results.get(i);
                 if (fragCompletion) { ((AtomCat)sign.getCategory()).fragCompletion = true; }
-                Edge resultEdge = makeEdge(sign, union, activeLfAlts); 
+                Edge resultEdge = makeEdge(sign, union, activeLfAlts);
                 retval.add(resultEdge);
                 if (collectCombos) {
                     edgeA.edgeCombos.addRightwardCombo(edgeB, resultEdge);
@@ -1252,7 +1253,7 @@ public class EdgeFactory
             for (int i = 0; i < numReversedResults; i++) {
                 Sign sign = reversedResults.get(i);
                 if (fragCompletion) { ((AtomCat)sign.getCategory()).fragCompletion = true; }
-                Edge resultEdge = makeEdge(sign, union, activeLfAlts); 
+                Edge resultEdge = makeEdge(sign, union, activeLfAlts);
                 retval.add(resultEdge);
                 if (collectCombos) {
                     edgeB.edgeCombos.addRightwardCombo(edgeA, resultEdge);
@@ -1260,35 +1261,35 @@ public class EdgeFactory
                 }
             }
         }
-        
+
         // done
         return retval;
     }
 
-    
+
     /**
-     * Returns all edges that can be created by applying a unary rule 
-     * to the given edge or by combining it with a purely syntactic edge, 
+     * Returns all edges that can be created by applying a unary rule
+     * to the given edge or by combining it with a purely syntactic edge,
      * without collecting combos.
      */
     public List<Edge> createNewEdges(Edge edge) {
         return createNewEdges(edge, false);
     }
-    
+
     /**
-     * Returns all edges that can be created by applying a unary rule 
+     * Returns all edges that can be created by applying a unary rule
      * to the given edge, or by combining it with a purely syntactic edge,
-     * or by completing a realization/chunk/alt with an optional part,  
-     * while updating the given edge with collected combos, 
+     * or by completing a realization/chunk/alt with an optional part,
+     * while updating the given edge with collected combos,
      * if the collectCombos flag is true.
      * When gluing fragments, only the opt completion step is done.
      */
     public List<Edge> createNewEdges(Edge edge, boolean collectCombos) {
-        
+
         List<Edge> retval = null; // instantiate on demand
-        
+
         if (!gluingFragments) {
-	        	
+
 	        List<Sign> genResults = generalRules.applyUnaryRules(edge.sign);
 	        unaryRuleApps++;
 	        // make edges for results, updating edge combos
@@ -1298,26 +1299,26 @@ public class EdgeFactory
 	                Sign sign = genResults.get(i);
 					// check for unary rule cycle; skip result if found
 	                if (sign.getDerivationHistory().containsCycle()) continue;
-	                Edge resultEdge = makeEdge(sign, edge.bitset, edge.activeLfAlts); 
+	                Edge resultEdge = makeEdge(sign, edge.bitset, edge.activeLfAlts);
 	                retval.add(resultEdge);
 	                if (collectCombos) edge.edgeCombos.unaryResults.add(resultEdge);
 	            }
 	        }
-	        
+
 	        // do rule instances
 	        Sign[] signs = { edge.sign };
 	        for (int i = 0; i < ruleInstances.size(); i++) {
 	            RuleInstance ruleInst = ruleInstances.get(i);
 	            // check sem overlap
-	            if (edge.intersects(ruleInst)) continue; 
+	            if (edge.intersects(ruleInst)) continue;
 	            // check for indices in common
-	            if (useIndexing && !edge.indicesIntersect(ruleInst)) continue; 
+	            if (useIndexing && !edge.indicesIntersect(ruleInst)) continue;
 	            // check LF chunk constraints
 	            if (useChunks && !edge.meetsLfChunkConstraints(ruleInst)) continue;
-	            // get combined alts, checking compatibility        
+	            // get combined alts, checking compatibility
 	            List<List<Alt>> combinedLfAlts = getCombinedLfAlts(edge.activeLfAlts, ruleInst.activeLfAlts);
 	            if (combinedLfAlts == null) continue;
-	        
+
 	            // apply rule
 	            List<Sign> instResults = new ArrayList<Sign>(1);
 	            ruleInst.rule.applyRule(signs, instResults);
@@ -1331,14 +1332,14 @@ public class EdgeFactory
 	                    Sign sign = instResults.get(j);
 	    				// check for unary rule cycle; skip result if found
 	                    if (sign.getDerivationHistory().containsCycle()) continue;
-	                    Edge resultEdge = makeEdge(sign, union, activeLfAlts); 
+	                    Edge resultEdge = makeEdge(sign, union, activeLfAlts);
 	                    retval.add(resultEdge);
 	                    if (collectCombos) edge.edgeCombos.unaryResults.add(resultEdge);
 	                }
 	            }
 	        }
         }
-        
+
         // do opt completed edges
         if (!lfOpts.isEmpty() && !edge.complete()) {
             // get completed bitsets for each completed active alt or chunk, and for whole thing
@@ -1368,23 +1369,23 @@ public class EdgeFactory
             }
         }
 
-        // ensure retval instantiated        
+        // ensure retval instantiated
         if (retval == null) retval = Collections.emptyList();
-        
+
         // check instantiation of outermost cats
         if (!gluingFragments) checkInstantiation(retval);
-        
+
         // done
         return retval;
     }
 
     // bitset for checking completeness
     private BitSet tmpBitSetCompleteness = new BitSet();
-    
+
     // bitset for making retval
     private BitSet tmpBitSetRetval = new BitSet();
-    
-    // adds a bitset with optional parts completed within the given bitset scope 
+
+    // adds a bitset with optional parts completed within the given bitset scope
     // to the given list, if the optional parts complete the given edge's bitset
     private void addOptCompletedBitSet(Edge edge, BitSet bitset, List<BitSet> optCompleted) {
         // check whether already complete
@@ -1400,16 +1401,16 @@ public class EdgeFactory
             }
         }
         // check completeness, add retval if complete (and distinct)
-        tmpBitSetCompleteness.clear(); tmpBitSetCompleteness.or(bitset); 
+        tmpBitSetCompleteness.clear(); tmpBitSetCompleteness.or(bitset);
         tmpBitSetCompleteness.and(tmpBitSetRetval);
         if (tmpBitSetCompleteness.cardinality() == bitset.cardinality()) {
-            if (!optCompleted.contains(tmpBitSetRetval)) 
+            if (!optCompleted.contains(tmpBitSetRetval))
             	optCompleted.add((BitSet)tmpBitSetRetval.clone());
         }
     }
-    
-    
-    /** Returns the edges that can be made by constructing alternative edges 
+
+
+    /** Returns the edges that can be made by constructing alternative edges
         from the given edge and the collected combos in its representative edge. */
     public List<Edge> createAltEdges(Edge edge, Edge repEdge) {
         // instantiate return list with right capacity
@@ -1427,7 +1428,7 @@ public class EdgeFactory
         // done
         return retval;
     }
-    
+
     // returns the number of results from the given combos
     private int numResultsFromCombos(List<EdgeCombos.CatCombo> combos) {
         int retval = 0;
@@ -1437,7 +1438,7 @@ public class EdgeFactory
         }
         return retval;
     }
-    
+
     // adds alt edges for the given edge, combos, and direction to results
     private void addAltsFromCombos(Edge edge, List<EdgeCombos.CatCombo> combos, boolean rightward, List<Edge> results) {
         for (EdgeCombos.CatCombo combo : combos) {
@@ -1445,22 +1446,22 @@ public class EdgeFactory
             Sign resultSign = resultEdge.sign;
             Category resultCat = resultSign.getCategory();
             Rule rule = resultSign.getDerivationHistory().getRule();
-            Sign[] resultInputs = resultSign.getDerivationHistory().getInputs(); 
+            Sign[] resultInputs = resultSign.getDerivationHistory().getInputs();
             boolean lefthead = (resultSign.getLexHead() == resultInputs[0].getLexHead());
             List<Edge> comboEdges = combo.inputEdge.altEdges;
             for (Edge comboEdge : comboEdges) {
-                Sign[] signs = (rightward) 
+                Sign[] signs = (rightward)
                     ? new Sign[] { edge.sign, comboEdge.sign }
                     : new Sign[] { comboEdge.sign, edge.sign };
-                Sign lexHead = (rightward == lefthead) 
-                	? edge.sign.getLexHead() 
+                Sign lexHead = (rightward == lefthead)
+                	? edge.sign.getLexHead()
         			: comboEdge.sign.getLexHead();
                 Sign altSign = Sign.createDerivedSignWithNewLF(resultCat, signs, rule, lexHead);
                 results.add(makeAltEdge(altSign, resultEdge));
             }
         }
     }
-    
+
     // adds alt edges for the given edge and unary results to results
     private void addAltsFromUnaryResults(Edge edge, List<Edge> unaryResults, List<Edge> results) {
         for (Edge resultEdge : unaryResults) {
@@ -1473,23 +1474,23 @@ public class EdgeFactory
             results.add(makeAltEdge(altSign, resultEdge));
         }
     }
-    
+
     // adds alt edges for the given edge and optional results to results
     private void addAltsFromOptionalResults(Edge edge, List<Edge> optionalResults, List<Edge> results) {
-        for (Edge resultEdge : optionalResults) { 
+        for (Edge resultEdge : optionalResults) {
             results.add(makeAltEdge(edge.sign, resultEdge));
         }
     }
-    
-    
+
+
     /** Returns the number of rule applications executed. */
     public int ruleApps() {
-        return 
+        return
             unaryRuleApps * generalRules.getUnaryRules().size() +
             unaryRuleInstApps +
             binaryRuleApps * generalRules.getBinaryRules().size();
     }
-    
+
 
     //-----------------------------------------------------------------
     // initGeneralRules
@@ -1513,13 +1514,13 @@ public class EdgeFactory
             generalRules.addRule(r);
         }
     }
-    
-        
+
+
     //-----------------------------------------------------------------
     // initNoSemEdges
     //
 
-    // creates edges for signs flagged as having no semantics,  
+    // creates edges for signs flagged as having no semantics,
     // and with appropriate licensing values in the initial edges
     private void initNoSemEdges() {
         // lookup signs by special index rel constant NO_SEM_FLAG
@@ -1558,7 +1559,7 @@ public class EdgeFactory
                     featureLicenser.updateFeatureMap(uninstCat);
                     featureLicenser.indexSemanticallyNullWords(uninstCat);
 	                Sign uninstSign = new Sign(sign.getWords(), uninstCat);
-	                Edge noSemEdge = makeEdge(uninstSign, new BitSet(preds.size()), emptyLfAlts); 
+	                Edge noSemEdge = makeEdge(uninstSign, new BitSet(preds.size()), emptyLfAlts);
 	                uninstEdges.add(noSemEdge);
 	            }
 	        }

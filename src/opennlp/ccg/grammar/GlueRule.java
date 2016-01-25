@@ -20,7 +20,7 @@ package opennlp.ccg.grammar;
 
 import java.util.*;
 
-import org.jdom.Element;
+import org.jdom2.Element;
 
 import opennlp.ccg.synsem.*;
 import opennlp.ccg.unify.*;

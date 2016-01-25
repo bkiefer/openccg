@@ -272,7 +272,4 @@ public class Converter {
 		return new NominalVar(nom.getName().toUpperCase(), nom.getType());
 	}
 
-    public static void setUtteranceIncrement(int utteranceIncr) {
-       utteranceIncrement = utteranceIncr ;
-    }
 }

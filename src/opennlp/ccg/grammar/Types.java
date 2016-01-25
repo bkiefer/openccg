@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 //// Copyright (C) 2003-4 Gunes Erkan and University of Edinburgh (Michael White)
-//// 
+////
 //// This library is free software; you can redistribute it and/or
 //// modify it under the terms of the GNU Lesser General Public
 //// License as published by the Free Software Foundation; either
 //// version 2.1 of the License, or (at your option) any later version.
-//// 
+////
 //// This library is distributed in the hope that it will be useful,
 //// but WITHOUT ANY WARRANTY; without even the implied warranty of
 //// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //// GNU Lesser General Public License for more details.
-//// 
+////
 //// You should have received a copy of the GNU Lesser General Public
 //// License along with this program; if not, write to the Free Software
 //// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -21,14 +21,14 @@ package opennlp.ccg.grammar;
 import opennlp.ccg.util.*;
 import opennlp.ccg.unify.*;
 
-import org.jdom.*;
-import org.jdom.input.*;
+import org.jdom2.*;
+import org.jdom2.input.*;
 
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import gnu.trove.*;
+import gnu.trove.map.hash.*;
 
 /**
  * Class for constructing and holding the hierarchical simple type maps.
@@ -45,7 +45,7 @@ public class Types {
     private int maxTypeIndex = 0;
     public static final String TOP_TYPE = "top";
     public static final String BOT_TYPE = "bottom";
-	
+
     /** Constructor for an empty hierarchy (with just the top type). */
     public Types(Grammar grammar) {
         getSimpleType(TOP_TYPE);
@@ -53,7 +53,7 @@ public class Types {
     }
 
     /**
-     * Constructs the type hierarchy from the given URL, for 
+     * Constructs the type hierarchy from the given URL, for
      * the given grammar.
      */
     @SuppressWarnings("unchecked")
@@ -73,7 +73,7 @@ public class Types {
         // for debugging: print the indexToType list
         //printTypes();
     }
-    
+
     /** Returns the simple type with the given name, or a new one if none yet exists. */
     public SimpleType getSimpleType(String typeName) {
         SimpleType type = nameToType.get(typeName);
@@ -93,7 +93,7 @@ public class Types {
     public boolean containsSimpleType(String typeName) {
         return nameToType.containsKey(typeName);
     }
-    
+
     /** Returns the list of types, with parents preceding children in the hierarchy. */
     public ArrayList<SimpleType> getIndexMap() {
         return indexToType;
@@ -102,12 +102,12 @@ public class Types {
 
     /** Reads the rules and constructs the nameToType and indexToType maps. */
     private void readTypes(List<Element> _types) {
-        
+
         GroupMap<String,String> hierarchy = new GroupMap<String,String>(); // map from types to all subtypes
         GroupMap<String,String> parents = new GroupMap<String,String>(); // map from types to parents
         TObjectIntHashMap depthMap = new TObjectIntHashMap(); // map from types to max depth
 
-        // Construct the initial hierarchy of types without 
+        // Construct the initial hierarchy of types without
         // taking transitive closure.
         // Also store parents.
         for (int i=0; i < _types.size(); i++) {
@@ -135,10 +135,10 @@ public class Types {
         }
 
     	// Compute ALL subtypes of each type and insert into the hierarchy.
-    	for (String type : hierarchy.keySet()) { 
+    	for (String type : hierarchy.keySet()) {
  		    hierarchy.putAll(type, findAllSubtypes(hierarchy, type));
  		}
-        
+
     	// Assign a unique int to each type in breadth-first order.
     	// Then create the string -> SimpleType map.
     	createSimpleTypes(hierarchy, depthMap);
@@ -160,10 +160,10 @@ public class Types {
 	}
         return maxParentDepth + 1;
     }
-    
-    /** 
-     * Computes the list of all sub-types of a given type (key) 
-     * in depth-first order. 
+
+    /**
+     * Computes the list of all sub-types of a given type (key)
+     * in depth-first order.
      */
     private Collection<String> findAllSubtypes(GroupMap<String,String> hierarchy, String key) {
         ArrayList<String> subs = new ArrayList<String>();
@@ -185,14 +185,14 @@ public class Types {
         return subs;
     }
 
-    /** 
-     * Creates the SimpleType objects and constructs the nameToType and indexToType maps. 
+    /**
+     * Creates the SimpleType objects and constructs the nameToType and indexToType maps.
      */
     private void createSimpleTypes(GroupMap<String,String> hierarchy, TObjectIntHashMap depthMap) {
-        
+
         // find max depth
         int maxDepth = 0;
-        int[] depths = depthMap.getValues();
+        int[] depths = depthMap.values();
         for (int i = 0; i < depths.length; i++) {
             maxDepth = Math.max(maxDepth, depths[i]);
         }
@@ -219,7 +219,7 @@ public class Types {
             bitset.set(i);
 	    if (hierarchy.get(typeName) != null) {
 		for (String type : hierarchy.get(typeName)) {
-		    int indexToSet = typesVisited.indexOf(type); 
+		    int indexToSet = typesVisited.indexOf(type);
 		    if (indexToSet != -1) bitset.set(indexToSet);
 		}
 	    }
@@ -229,19 +229,19 @@ public class Types {
         }
         maxTypeIndex = typesVisited.size();
     }
-    
+
     /**
      * Prints the types and their subtypes to System.out.
      */
     public void printTypes() {
         System.out.println("types:");
         for (int i=0; i < indexToType.size(); i++) {
-            SimpleType st = indexToType.get(i); 
+            SimpleType st = indexToType.get(i);
             System.out.println(i + ": " + st.getName() + " subtypes: " + st.getBitSet());
         }
         System.out.println();
     }
-    
+
     /** Tests serialization of simple types, including resolution. */
     public void debugSerialization() throws IOException, ClassNotFoundException {
         // test serialization

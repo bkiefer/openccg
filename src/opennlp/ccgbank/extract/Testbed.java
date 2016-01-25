@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2005-2009 Scott Martin, Rajakrishan Rajkumar and Michael White
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -34,12 +34,12 @@ import opennlp.ccg.synsem.*;
 import opennlp.ccg.test.*;
 import opennlp.ccg.unify.*;
 
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.Format;
-import org.jdom.output.XMLOutputter;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 
 /**
  * Creates test files under in 'test' dir under extracted grammar.
@@ -53,7 +53,7 @@ public class Testbed {
 
 	// supertagger stand-in
 	private SupertaggerStandIn supertaggerStandIn = new SupertaggerStandIn();
-	
+
 	// results of following deriv
 	private Sign sign = null;
 
@@ -121,15 +121,15 @@ public class Testbed {
 		PrintWriter treePW = null;
 		File textFile = ccgBankTaskTestbed.getText();
 		File factorsFile = ccgBankTaskTestbed.getFactors();
-		File combosFile = ccgBankTaskTestbed.getCombos(); 
-		File predsFile = ccgBankTaskTestbed.getPreds(); 
+		File combosFile = ccgBankTaskTestbed.getCombos();
+		File predsFile = ccgBankTaskTestbed.getPreds();
 		File treeFile = ccgBankTaskTestbed.getTree();
-		
+
 		if (textFile != null) {
 			File textscFile=new File(textFile.getParent()+"/"+textFile.getName().replaceFirst("text-","textsc-"));
 			ccgBankTaskTestbed.log("Writing text to: " + textFile);
 			ccgBankTaskTestbed.log("Writing class-replaced text to: " + textscFile);
-            textFile.getParentFile().mkdirs(); 
+            textFile.getParentFile().mkdirs();
 			textPW = new PrintWriter(new BufferedWriter(new FileWriter(textFile)));
 			textscPW = new PrintWriter(new BufferedWriter(new FileWriter(textscFile)));
 		}
@@ -140,7 +140,7 @@ public class Testbed {
 		}
 		if (combosFile != null) {
 			ccgBankTaskTestbed.log("Writing supertag-rule combos to: " + combosFile);
-            combosFile.getParentFile().mkdirs(); 
+            combosFile.getParentFile().mkdirs();
 			combos = new HashSet<String>();
 			combosPW = new PrintWriter(new BufferedWriter(new FileWriter(combosFile)));
 		}
@@ -217,7 +217,7 @@ public class Testbed {
 						// append to text, factors files
 						if (textPW != null)
 							textPW.println(str);
-						
+
 						 if (textscPW != null) {
                              textscPW.flush();
                              String textsc="";
@@ -227,7 +227,7 @@ public class Testbed {
                              textscPW.flush();
 						 }
 
-						
+
 						if (factorsPW != null)
 							factorsPW.println(tokenizer.format(sign.getWords()));
 						// append new combos to combos file
@@ -286,16 +286,16 @@ public class Testbed {
 	}
 
 	private void followDeriv(Element derivElt) {
-		
+
 		// reset
 		sign = null;
 		lf = null;
 		str = "";
 		header = derivElt.getAttributeValue("Header");
-		
+
 		// bookkeeping
 		UnifyControl.startUnifySequence();
-		
+
 		try {
 
 			Category cat = null;
@@ -345,7 +345,7 @@ public class Testbed {
 				numParses = signs.size();
 				str = str.trim();
 			}
-			
+
 		} catch (ParseException exc) {
 			ccgBankTaskTestbed.log("Warning for " + header + ": " + exc.toString());
 		}
@@ -366,7 +366,7 @@ public class Testbed {
 			if (numChildren == 0)
 				throw new ParseException(header
 						+ ": no child elements for TreeNode for cat: " + cat);
-			// if no cat element present, adjust list with an initial dummy node, 
+			// if no cat element present, adjust list with an initial dummy node,
 			// to avoid code changes in what follows
 			Element elt0 = (Element) childElts.get(0);
 			String elt0name = elt0.getName();
@@ -532,9 +532,9 @@ public class Testbed {
 				if (!pos.startsWith("VB"))
 					rel = null;
 				// lex lookup with required supertag
-				// NB: there's no guarantee of getting the right arg roles if the word-cat pair is observed 
+				// NB: there's no guarantee of getting the right arg roles if the word-cat pair is observed
 				lexicon.setSupertagger(supertaggerStandIn);
-				supertaggerStandIn.setTag(simpleCat); 
+				supertaggerStandIn.setTag(simpleCat);
 				SignHash lexSigns = lexicon.getSignsFromWord(w);
 
 				if (semClass == null || semClass.length() == 0)
@@ -809,7 +809,7 @@ public class Testbed {
 	}
 
 	/**
-	 * Extracts the nom id, pos, and supertag info related to LF lexical preds, 
+	 * Extracts the nom id, pos, and supertag info related to LF lexical preds,
 	 * and puts it in the given map keyed off the nom id.
 	 * Note that the map should be cleared for each new LF.
 	 */
@@ -873,19 +873,19 @@ public class Testbed {
 		}
 		return predData.trim();
 	}
-	
+
 	// escapes a string using DefaultTokenizer
 	private static String escape(String s) { return DefaultTokenizer.escape(s); }
-	
+
 	// stands in for a supertagger during lex lookup
 	private static class SupertaggerStandIn implements SupertaggerAdapter {
 		// map for a single key
 		private Map<String,Double> map = new HashMap<String,Double>(2);
 		public Map<String,Double> getSupertags() { return map; }
-		
+
 		// set tag
 		void setTag(String tag) { map.clear(); map.put(tag, 1.0); }
-		
+
 		// dummy implementations
 		public void setIncludeGold(boolean includeGold) {}
 		public void resetBeta() {}

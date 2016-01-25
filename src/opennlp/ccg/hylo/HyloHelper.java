@@ -717,9 +717,4 @@ public class HyloHelper {
             }
         }
     }
-
-    public static void setUtteranceIncrement(int utteranceIncr) {
-       Converter.setUtteranceIncrement(utteranceIncr);
-    }
-
 }

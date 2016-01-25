@@ -19,7 +19,7 @@
 
 package opennlp.ccg.unify;
 
-import gnu.trove.*;
+import gnu.trove.map.hash.*;
 import java.util.*;
 
 /**

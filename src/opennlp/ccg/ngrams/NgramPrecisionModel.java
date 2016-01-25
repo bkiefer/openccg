@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2003-5 University of Edinburgh (Michael White)
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -24,12 +24,12 @@ import opennlp.ccg.perceptron.FeatureVector;
 import opennlp.ccg.synsem.Sign;
 import opennlp.ccg.util.*;
 
-import gnu.trove.*;
+import gnu.trove.set.hash.*;
 import java.util.*;
 
 /**
- * N-gram precision scoring model, using a linear combination of 
- * n-grams with rank order centroid weights, and optionally replacing word forms with 
+ * N-gram precision scoring model, using a linear combination of
+ * n-grams with rank order centroid weights, and optionally replacing word forms with
  * their semantic classes.
  * Words in the target strings are assumed to contain any desired delimiters.
  * With the exact matches flag set, only exact matches count.
@@ -42,69 +42,69 @@ public class NgramPrecisionModel extends NgramScorer implements SelfParaphraseBi
     // n-grams in the target phrases
     @SuppressWarnings("unchecked")
 	private Set<List<Word>> targetNgrams = new THashSet();
-    
+
     // weights
     private double[] weights = null;
-    
+
     // exact matches flag
     private boolean exactMatches = false;
-    
+
     /** Reusable list of reduced words. */
     protected List<Word> reducedWords = new ArrayList<Word>();
-    
+
     /** Reusable word list, with identity equals. */
     protected List<Word> wordList = new ArrayListWithIdentityEquals<Word>();
 
-    
+
     /**
-     * Creates a new 4-gram precision model with no initial target strings 
-     * and with the combination weights determined by the rank order centroid method.  
+     * Creates a new 4-gram precision model with no initial target strings
+     * and with the combination weights determined by the rank order centroid method.
      * Word forms are not replaced by their semantic classes.
      */
-    public NgramPrecisionModel() { 
+    public NgramPrecisionModel() {
         this(new String[]{}, false);
     }
-    
+
     /**
-     * Creates a new 4-gram precision model from the given target strings 
-     * and with the combination weights determined by the rank order centroid method.  
+     * Creates a new 4-gram precision model from the given target strings
+     * and with the combination weights determined by the rank order centroid method.
      * Word forms are not replaced by their semantic classes.
      */
-    public NgramPrecisionModel(String[] targets) { 
+    public NgramPrecisionModel(String[] targets) {
         this(targets, false);
     }
-    
+
     /**
-     * Creates a new n-gram precision model of the given order from the given target strings   
-     * and with the combination weights determined by the rank order centroid method.  
+     * Creates a new n-gram precision model of the given order from the given target strings
+     * and with the combination weights determined by the rank order centroid method.
      * Word forms are not replaced by their semantic classes.
      */
-    public NgramPrecisionModel(String[] targets, int order) { 
+    public NgramPrecisionModel(String[] targets, int order) {
         this(targets, order, false);
     }
-    
+
     /**
-     * Creates a new 4-gram precision model from the given target strings,  
-     * with the given flag controlling whether word forms are replaced by their semantic classes, 
-     * and with the combination weights determined by the rank order centroid method.  
+     * Creates a new 4-gram precision model from the given target strings,
+     * with the given flag controlling whether word forms are replaced by their semantic classes,
+     * and with the combination weights determined by the rank order centroid method.
      */
-    public NgramPrecisionModel(String[] targets, boolean useSemClasses) { 
+    public NgramPrecisionModel(String[] targets, boolean useSemClasses) {
         this(targets, 4, useSemClasses);
     }
-    
+
     /**
-     * Creates a new n-gram precision model of the given order from the given target strings,  
-     * with the given flag controlling whether word forms are replaced by their semantic classes, 
-     * and with the combination weights determined by the rank order centroid method.  
+     * Creates a new n-gram precision model of the given order from the given target strings,
+     * with the given flag controlling whether word forms are replaced by their semantic classes,
+     * and with the combination weights determined by the rank order centroid method.
      */
-    public NgramPrecisionModel(String[] targets, int order, boolean useSemClasses) { 
+    public NgramPrecisionModel(String[] targets, int order, boolean useSemClasses) {
         this(targets, order, useSemClasses, rankOrderCentroidWeights(order));
     }
-    
+
     /**
-     * Creates a new n-gram precision model of the given order from the given target strings,  
-     * with the given flag controlling whether word forms are replaced by their semantic classes, 
-     * and with the given combination weights, beginning with the 
+     * Creates a new n-gram precision model of the given order from the given target strings,
+     * with the given flag controlling whether word forms are replaced by their semantic classes,
+     * and with the given combination weights, beginning with the
      * highest-order weight and ending with the lowest-order (unigram) weight.
      */
     public NgramPrecisionModel(String[] targets, int order, boolean useSemClasses, double[] weights) {
@@ -116,15 +116,15 @@ public class NgramPrecisionModel extends NgramScorer implements SelfParaphraseBi
         }
         initTargetNgrams(targets);
     }
-    
-    
+
+
     /** Sets the exact matches flag. */
     public void setExactMatches(boolean exactMatches) { this.exactMatches = exactMatches; }
-    
+
     /** Returns the exact matches flag. */
     public boolean getExactMatches() { return exactMatches; }
-    
-    
+
+
     /** Reduces the words in wordsToScore to reducedWords, before scoring. */
     protected void prepareToScoreWords() {
         reducedWords.clear();
@@ -133,34 +133,34 @@ public class NgramPrecisionModel extends NgramScorer implements SelfParaphraseBi
             reducedWords.add(reduceWord(w));
         }
     }
-    
+
     /** Returns the given word reduced to a surface word, using the sem class, if apropos. */
     protected Word reduceWord(Word w) {
-        if (useSemClasses && isReplacementSemClass(w.getSemClass())) 
+        if (useSemClasses && isReplacementSemClass(w.getSemClass()))
             return Word.createSurfaceWordUsingSemClass(w);
         else return Word.createSurfaceWord(w);
     }
-    
-    /** 
-     * Returns a score between 0 (worst) and 1 (best) for the given sign 
+
+    /**
+     * Returns a score between 0 (worst) and 1 (best) for the given sign
      * and completeness flag, based on the n-gram score of the sign's words.
-     * If the sign is complete, sentence delimiters are added before 
+     * If the sign is complete, sentence delimiters are added before
      * scoring the words, if not already present.
-     * Returns 0 if any filter flags the n-gram for filtering, or if 
+     * Returns 0 if any filter flags the n-gram for filtering, or if
      * the sign has no words.
-     * Otherwise, sets <code>signToScore</code>, calls <code>prepareToScoreWords</code>, 
+     * Otherwise, sets <code>signToScore</code>, calls <code>prepareToScoreWords</code>,
      * and then calculates and returns the n-gram precision score.
-     * In particular, returns the linear combination using the established weights 
-     * of the various n-gram precision scores (from unigram up to the configured order), 
-     * where the n-gram precision is the number of n-grams with a match in the target 
+     * In particular, returns the linear combination using the established weights
+     * of the various n-gram precision scores (from unigram up to the configured order),
+     * where the n-gram precision is the number of n-grams with a match in the target
      * strings divided by the number of n-grams in the word sequence.
      * With the exact matches flag set, only exact matches count.
-     * With short sequences (less than the order), the score is adjusted 
+     * With short sequences (less than the order), the score is adjusted
      * proportionally to the max score.
      */
     public synchronized double score(Sign sign, boolean complete) {
     	// setup
-        List<Word> words = sign.getWords(); 
+        List<Word> words = sign.getWords();
         if (words == null) return 0;
         signToScore = sign;
         setWordsToScore(words, complete);
@@ -189,21 +189,21 @@ public class NgramPrecisionModel extends NgramScorer implements SelfParaphraseBi
     }
 
 
-	/** 
+	/**
 	 * Returns the features as counts of each ngram for the given sign and completeness flag.
 	 * This method returns the feature map as a feature vector.
 	 */
 	public FeatureVector extractFeatures(Sign sign, boolean complete) {
 		return extractFeatureMap(sign, complete);
 	}
-	
-    
+
+
     /** Not supported; throws an UnsupportedOperationException. */
     protected float logProbFromNgram(int i, int order) {
         throw new UnsupportedOperationException();
     }
-    
-    
+
+
     // returns the n-gram precision of the given order, or zero if too few words
     private double ngramPrecision(int order) {
         int numWords = reducedWords.size();
@@ -215,9 +215,9 @@ public class NgramPrecisionModel extends NgramScorer implements SelfParaphraseBi
             if (targetNgrams.contains(wordList))
                 matches++;
         }
-        if (exactMatches) 
+        if (exactMatches)
         	return (matches == numNgrams) ? 1.0 : 0.0;
-        else 
+        else
         	return (matches * 1.0) / numNgrams;
     }
 
@@ -225,13 +225,13 @@ public class NgramPrecisionModel extends NgramScorer implements SelfParaphraseBi
     protected synchronized void setNgram(List<Word> words, int i, int order) {
         wordList.clear();
         for (int j = 0; j < order; j++) {
-            wordList.add(words.get(i+j)); 
-        }        
+            wordList.add(words.get(i+j));
+        }
     }
 
     /**
 	 * Sets the keys in keysList to hold the ngram starting at the given index in
-	 * wordsToScore and with the given order; returns true if the operation 
+	 * wordsToScore and with the given order; returns true if the operation
 	 * succeeds normally. The implementation uses reducedWords.
 	 */
 	protected boolean setKeysToNgram(int i, int order) {
@@ -242,8 +242,8 @@ public class NgramPrecisionModel extends NgramScorer implements SelfParaphraseBi
 		return true;
 	}
 
-    
-    /** Makes a canonical n-gram of the given order using words starting at pos i. 
+
+    /** Makes a canonical n-gram of the given order using words starting at pos i.
         Sublists are shared, a la a trie data structure. */
     @SuppressWarnings("unchecked")
 	protected List<Word> makeNgram(List<Word> words, int i, int order) {
@@ -257,10 +257,10 @@ public class NgramPrecisionModel extends NgramScorer implements SelfParaphraseBi
         }
         // otherwise, extend list for the first word with suffix list
         List<Word> firstOneList = makeNgram(words, i, 1);
-        List<Word> suffixList = makeNgram(words, i+1, order-1); 
+        List<Word> suffixList = makeNgram(words, i+1, order-1);
         return (List<Word>) Interner.globalIntern(new StructureSharingList<Word>(firstOneList, suffixList));
     }
-    
+
 
     // initializes the n-grams from the target phrases
     private void initTargetNgrams(String[] targets) {
@@ -288,7 +288,7 @@ public class NgramPrecisionModel extends NgramScorer implements SelfParaphraseBi
             }
         }
     }
-    
+
 	/** Sets the target strings for implementing the self-paraphrase bias. */
 	@SuppressWarnings("unchecked")
 	public void setTargets(String[] targets) {

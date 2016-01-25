@@ -19,7 +19,7 @@
 package opennlp.ccg.synsem;
 
 import java.io.Serializable;
-import gnu.trove.*;
+import gnu.trove.map.hash.*;
 
 import opennlp.ccg.unify.*;
 

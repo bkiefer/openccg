@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2003-7 University of Edinburgh, Michael White
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -24,8 +24,8 @@ import opennlp.ccg.grammar.*;
 import opennlp.ccg.synsem.*;
 import opennlp.ccg.ngrams.*;
 
-import org.jdom.*;
-import org.jdom.output.*;
+import org.jdom2.*;
+import org.jdom2.output.*;
 
 import java.io.*;
 import java.net.*;
@@ -41,17 +41,16 @@ import java.util.prefs.*;
 public class Realize
 {
     private static PrintWriter out;
-    
-    @SuppressWarnings("unchecked")
+
 	public static void main(String[] args) throws Exception {
-        
+
         String usage = "Usage: java opennlp.ccg.Realize (-g <grammarfile>) (-exactmatches) (-ngramorder N) <inputfile> (<outputfile>)";
-        
+
         if (args.length > 0 && args[0].equals("-h")) {
             System.out.println(usage);
             System.exit(0);
         }
-        
+
         // args
         String grammarfile = "grammar.xml";
         String inputfile = null;
@@ -74,46 +73,46 @@ public class Realize
             System.out.println(usage);
             System.exit(0);
         }
-        
+
         // set out accordingly
         if (outputfile != null) {
             out = new PrintWriter(new BufferedWriter(new FileWriter(outputfile)));
         }
         else {
-            out = new PrintWriter(System.out); 
+            out = new PrintWriter(System.out);
         }
-        
+
         // remember, modify prefs
         Preferences prefs = Preferences.userNodeForPackage(TextCCG.class);
         boolean oldShowCompleteness = prefs.getBoolean(Edge.SHOW_COMPLETENESS, false);
         boolean oldShowBitset = prefs.getBoolean(Edge.SHOW_BITSET, false);
         prefs.putBoolean(Edge.SHOW_COMPLETENESS, true);
         prefs.putBoolean(Edge.SHOW_BITSET, true);
-        
+
         // load grammar
         URL grammarURL = new File(grammarfile).toURI().toURL();
         out.println("Loading grammar from URL: " + grammarURL);
         Grammar grammar = new Grammar(grammarURL);
 
-        // instantiate realizer        
+        // instantiate realizer
         Realizer realizer = new Realizer(grammar);
-        
+
         // get request
         out.println();
         out.println("Request:");
         out.println();
         Document doc = grammar.loadFromXml(inputfile);
-        org.jdom.output.XMLOutputter outputter = new org.jdom.output.XMLOutputter(Format.getPrettyFormat()); 
+        XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
         out.flush();
         outputter.output(doc, out);
         out.flush();
-        
+
         LF lf = Realizer.getLfFromDoc(doc);
         out.println();
         out.println("** Initial run");
         out.println();
         out.println("Input LF: " + lf);
-        
+
         // set up n-gram scorer
         SignScorer ngramScorer;
         Element root = doc.getRootElement();
@@ -133,7 +132,7 @@ public class Realize
             if (ngramOrder > 0) {
                 out.println();
                 out.println("Using order " + ngramOrder + " in n-gram precision.");
-            	ngramScorer = new NgramPrecisionModel(targets, ngramOrder); 
+            	ngramScorer = new NgramPrecisionModel(targets, ngramOrder);
             }
             else ngramScorer = new NgramPrecisionModel(targets);
             if (exactMatches) {
@@ -153,13 +152,13 @@ public class Realize
             // load n-gram model
             String filename = ngramModelElt.getAttributeValue("file");
             String reverseStr = ngramModelElt.getAttributeValue("reverse");
-            boolean reverse = (reverseStr != null) ? reverseStr.equals("true") : false; 
+            boolean reverse = (reverseStr != null) ? reverseStr.equals("true") : false;
             String factoredStr = ngramModelElt.getAttributeValue("factored");
-            boolean factored = (factoredStr != null) ? factoredStr.equals("true") : false; 
+            boolean factored = (factoredStr != null) ? factoredStr.equals("true") : false;
             String semClassesStr = ngramModelElt.getAttributeValue("sem-classes");
             boolean useSemClasses = (semClassesStr != null) ? semClassesStr.equals("true") : true;
             int order = 3; // order can only be changed for standard n-gram models
-            String orderStr = ngramModelElt.getAttributeValue("order"); 
+            String orderStr = ngramModelElt.getAttributeValue("order");
             if (orderStr != null) { order = Integer.parseInt(orderStr); }
             if (ngramOrder > 0) order = ngramOrder; // preference given to command-line value
             out.println();
@@ -177,7 +176,7 @@ public class Realize
                 ngramScorer = new StandardNgramModel(order, filename, useSemClasses);
             if (reverse) ((NgramScorer)ngramScorer).setReverse(true);
         }
-        
+
         // set pruning strategy (if any)
         Element pruningStrategyElt = root.getChild("pruning-strategy");
         if (pruningStrategyElt != null) {
@@ -185,10 +184,10 @@ public class Realize
             String pruningStrategyClass = pruningStrategyElt.getAttributeValue("class");
             out.println();
             out.println("Instantiating pruning strategy from class: " + pruningStrategyClass);
-            realizer.pruningStrategy = (PruningStrategy) 
+            realizer.pruningStrategy = (PruningStrategy)
                 Class.forName(pruningStrategyClass).newInstance();
         }
-        
+
         // set hypertagger (if any)
         Element htModelElt = root.getChild("ht-model");
         if (htModelElt != null) {
@@ -214,7 +213,7 @@ public class Realize
         out.println();
         out.println("Preds:");
         chart.printEPs();
-        
+
         out.println();
         out.println("LF chunks:");
         chart.printLfChunks();
@@ -233,8 +232,8 @@ public class Realize
 
         out.println();
         out.println("Marked Edges:");
-        chart.printMarkedEdges(); 
-        
+        chart.printMarkedEdges();
+
         out.println();
         out.println("Instantiated Semantically Null Edges:");
         chart.printInstantiatedNoSemEdges();
@@ -262,17 +261,17 @@ public class Realize
         out.println();
         out.println("Best Edge:");
         chart.printBestEdge();
-        
+
         out.println();
         out.println("Best Edge Derivation:");
         out.println(chart.bestEdge.getSign().getDerivationHistory());
         out.flush();
-        
+
         if (chart.bestJoinedEdge != null) {
             out.println();
             out.println("Best Joined Edge:");
             chart.printBestJoinedEdge();
-        
+
             out.println();
             out.println("Best Joined Edge Derivation:");
             out.println(chart.bestJoinedEdge.getSign().getDerivationHistory());

@@ -24,9 +24,9 @@ import opennlp.ccg.lexicon.*;
 import opennlp.ccg.grammar.*;
 import opennlp.ccg.hylo.*;
 
-import org.jdom.*;
+import org.jdom2.*;
 
-import gnu.trove.*;
+import gnu.trove.map.hash.*;
 
 import java.io.*;
 import java.util.*;

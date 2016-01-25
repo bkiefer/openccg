@@ -19,10 +19,10 @@
 package opennlp.ccg.synsem;
 
 import opennlp.ccg.unify.*;
-import org.jdom.*;
+import org.jdom2.*;
 import java.io.Serializable;
 import java.util.*;
-import gnu.trove.*;
+import gnu.trove.map.hash.*;
 
 /**
  * A category which contains an unordered set of categories.

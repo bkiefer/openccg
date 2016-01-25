@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2003-5 Jason Baldridge and University of Edinburgh (Michael White)
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -21,14 +21,14 @@ package opennlp.ccg.synsem;
 import opennlp.ccg.unify.*;
 import opennlp.ccg.util.DisplayPrefs;
 import opennlp.ccg.grammar.Grammar;
-import gnu.trove.*;
-import org.jdom.*;
+import gnu.trove.map.hash.*;
+import org.jdom2.*;
 
 import java.util.*;
 
 /**
  * A non-recursive representation of complex categories.
- * 
+ *
  * @author Jason Baldridge
  * @author Michael White
  * @version $Revision: 1.15 $, $Date: 2009/06/18 23:38:57 $
@@ -80,7 +80,7 @@ public final class ComplexCat extends AbstractCat {
 		// set modifier slashes
 		setModifierSlashes();
 	}
-	
+
     /**Returns an XML element representing the category. */
     public Element toXml() {
     	Element retval = new Element("complexcat");
@@ -90,10 +90,10 @@ public final class ComplexCat extends AbstractCat {
     	super.toXml(retval);
     	return retval;
     }
-	
+
 	// sets modifier slashes based on feat struc ids
 	private void setModifierSlashes() {
-		FeatureStructure targetFS = _target.getFeatureStructure(); 
+		FeatureStructure targetFS = _target.getFeatureStructure();
 		int targetIndex = targetFS.getIndex();
 		if (targetIndex == 0) targetIndex = targetFS.getInheritsFrom();
 		if (targetIndex == 0) return;
@@ -110,7 +110,7 @@ public final class ComplexCat extends AbstractCat {
 			}
 		}
 	}
-	
+
 	// sets modifier slash based on the target index
 	private void setModifierSlash(int targetIndex, BasicArg arg) {
 		FeatureStructure argFS = arg.getCat().getTarget().getFeatureStructure();
@@ -119,7 +119,7 @@ public final class ComplexCat extends AbstractCat {
 			arg.getSlash().setModifier(true);
 	}
 
-	
+
 	/**
 	 * Returns the target category of this category.
 	 */

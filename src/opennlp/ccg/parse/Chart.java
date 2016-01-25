@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2003-10 Jason Baldridge, Gann Bierner and Michael White
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -20,7 +20,9 @@ package opennlp.ccg.parse;
 
 import opennlp.ccg.grammar.*;
 import opennlp.ccg.synsem.*;
-import gnu.trove.*;
+import gnu.trove.map.hash.*;
+import gnu.trove.set.hash.*;
+import gnu.trove.strategy.*;
 
 import java.io.*;
 import java.util.*;
@@ -28,10 +30,10 @@ import java.util.*;
 /**
  * An implementation of the table (or chart) used for chart parsers like CKY.
  * Special functions are provided for combining cells of the chart into another
- * cell.  Time or edge or cell limits can be placed on initial chart construction. 
- * A pruning value applies to unpacking, which also limits the number of equivalent 
+ * cell.  Time or edge or cell limits can be placed on initial chart construction.
+ * A pruning value applies to unpacking, which also limits the number of equivalent
  * edges kept during chart construction.
- * 
+ *
  * @author Jason Baldridge
  * @author Gann Bierner
  * @author Michael White
@@ -40,30 +42,29 @@ import java.util.*;
 public class Chart {
 
     // maps edges to representative edges, according to their headwords and cats, sans LFs
-	// NB: using unfilled dependencies in equiv relation appears to unacceptably slow down parsing, 
+	// NB: using unfilled dependencies in equiv relation appears to unacceptably slow down parsing,
 	//     with a significant drop in complete parses
     @SuppressWarnings("unchecked")
     private static Map<Edge,Edge> createEdgeMap() {
-    	return new THashMap(11, representativeEdgeStrategy);
+    	return new TCustomHashMap<Edge,Edge>(representativeEdgeStrategy, 11);
     }
-    
-    private static TObjectHashingStrategy representativeEdgeStrategy = new TObjectHashingStrategy() {
+
+    private static HashingStrategy<Edge> representativeEdgeStrategy = new HashingStrategy<Edge>() {
 		private static final long serialVersionUID = 1L;
-		public int computeHashCode(Object o) {
-            Sign sign = ((Edge)o).sign;
-            int headpos = Edge.getEdge(sign.getLexHead()).wordPos; 
-            return 31*headpos + sign.getCategory().hashCodeNoLF(); 
-            //return 31*headpos + sign.getCategory().hashCodeNoLF() + 17*sign.getUnfilledDeps().hashCode(); 
+		public int computeHashCode(Edge e) {
+            Sign sign = e.sign;
+            int headpos = Edge.getEdge(sign.getLexHead()).wordPos;
+            return 31*headpos + sign.getCategory().hashCodeNoLF();
+            //return 31*headpos + sign.getCategory().hashCodeNoLF() + 17*sign.getUnfilledDeps().hashCode();
         }
-        public boolean equals(Object o1, Object o2) {
-        	if (!(o1 instanceof Edge) || !(o2 instanceof Edge)) return false;
-            Sign sign1 = ((Edge)o1).sign; Sign sign2 = ((Edge)o2).sign;
-            return Edge.getEdge(sign1.getLexHead()).wordPos == Edge.getEdge(sign2.getLexHead()).wordPos && 
-            	sign1.getCategory().equalsNoLF(sign2.getCategory()); 
-            	//&& sign1.getUnfilledDeps().equals(sign2.getUnfilledDeps());
+        public boolean equals(Edge e1, Edge e2) {
+          Sign sign1 = e1.sign; Sign sign2 = e2.sign;
+          return Edge.getEdge(sign1.getLexHead()).wordPos == Edge.getEdge(sign2.getLexHead()).wordPos &&
+              sign1.getCategory().equalsNoLF(sign2.getCategory());
+          //&& sign1.getUnfilledDeps().equals(sign2.getUnfilledDeps());
         }
     };
-    
+
     // a cell pairs a sorted list with an edge map
     private class Cell implements Serializable {
 		private static final long serialVersionUID = 1L;
@@ -86,8 +87,8 @@ public class Chart {
     		for (Edge e : list) retval.insert(e.sign);
         	return retval;
     	}
-    };	
-    
+    };
+
     // adds edge to sorted list and optional map, preserving limit; returns true iff edge added
     // nb: all lexical edges kept
     private boolean addEdgeSorted(Edge edge, List<Edge> list, Map<Edge,Edge> map, int limit) {
@@ -107,15 +108,15 @@ public class Chart {
 			Edge last = list.remove(list.size()-1);
 			if (map != null) map.remove(last);
 		}
-		return true;    	
+		return true;
     }
-    
+
     /** Compares edges based on their relative score, in descending order, then their signs. */
 	public static final Comparator<Edge> edgeComparator = new Comparator<Edge>() {
 		public int compare(Edge edge1, Edge edge2) {
 			if (edge1.score != edge2.score)
 				return -1 * Double.compare(edge1.score, edge2.score);
-			else 
+			else
 				return SignHash.compareTo(edge1.sign, edge2.sign);
 		}
 	};
@@ -128,34 +129,34 @@ public class Chart {
 
 	/** The count of edges created before unpacking. */
 	protected int _numEdges = 0;
-	
+
 	/** The count of edges created while unpacking. */
 	protected int _numUnpackingEdges = 0;
-	
+
 	/** The max cell size before unpacking. */
 	protected int _maxCellSize = 0;
-	
+
 	/** The rules. */
 	protected RuleGroup _rules;
 
 	/** The sign scorer (defaults to the null scorer). */
 	protected SignScorer _signScorer = SignScorer.nullScorer;
-	
+
 	/** The "n" for n-best pruning (or 0 if none). */
 	protected int _pruneVal = 0;
-	
+
 	/** The time limit (0 if none). */
 	protected int _timeLimit = 0;
-	
+
 	/** The start time. */
 	protected long _startTime = 0;
-	
+
 	/** The edge limit (0 if none). */
 	protected int _edgeLimit = 0;
-	
+
 	/** The cell limit on non-lexical edges (0 if none). */
 	protected int _cellLimit = 0;
-	
+
 	/** Constructor. */
 	public Chart(int s, RuleGroup _R) {
 		_rules = _R; _size = s;
@@ -164,38 +165,38 @@ public class Chart {
 
 	/** Sets the sign scorer. */
 	public void setSignScorer(SignScorer signScorer) { _signScorer = signScorer; }
-	
+
 	/** Sets the n-best pruning val. */
 	public void setPruneVal(int n) { _pruneVal = n; }
-	
+
 	/** Sets the time limit. */
 	public void setTimeLimit(int timeLimit) { _timeLimit = timeLimit; }
-	
+
 	/** Sets the start time. */
 	public void setStartTime(long startTime) { _startTime = startTime; }
-	
+
 	/** Sets the edge limit. */
 	public void setEdgeLimit(int edgeLimit) { _edgeLimit = edgeLimit; }
-	
+
 	/** Sets the cell limit on non-lexical edges. */
 	public void setCellLimit(int cellLimit) { _cellLimit = cellLimit; }
-	
+
 	/** Returns the edge count prior to unpacking. */
 	public int edgeCount() { return _numEdges; }
-	
+
 	/** Returns the edge count while unpacking. */
 	public int unpackingEdgeCount() { return _numUnpackingEdges; }
-	
+
 	/** Returns the max cell size prior to unpacking. */
 	public int maxCellSize() { return _maxCellSize; }
-	
-	
+
+
 	//-----------------------------------------------------------
 	// Chart construction
-	
-	/** 
-	 * Inserts a sign at the given cell (modulo pruning).  
-	 * Returns true if an edge for the sign is added as a new equiv class. 
+
+	/**
+	 * Inserts a sign at the given cell (modulo pruning).
+	 * Returns true if an edge for the sign is added as a new equiv class.
 	 */
 	public boolean insert(int x, int y, Sign w) {
 		Cell cell = get(x, y);
@@ -233,8 +234,8 @@ public class Chart {
 		return cell.getSigns();
 	}
 
-	/** Inserts edges into (x,y) that result from applying unary rules to those already in (x,y). 
-	 * @throws ParseException */ 
+	/** Inserts edges into (x,y) that result from applying unary rules to those already in (x,y).
+	 * @throws ParseException */
 	protected void insertCell(int x, int y) throws ParseException {
 		if (_table[x][y] == null) return;
 		List<Sign> inputs = _table[x][y].getSignsSorted();
@@ -262,7 +263,7 @@ public class Chart {
 		}
 	}
 
-	/** Inserts edges into (x3,y3) resulting from combining those in (x1,y1) and (x2,y2). 
+	/** Inserts edges into (x3,y3) resulting from combining those in (x1,y1) and (x2,y2).
 	 * @throws ParseException */
 	protected void insertCell(int x1, int y1, int x2, int y2, int x3, int y3) throws ParseException {
 		if (_table[x1][y1] == null) return;
@@ -279,10 +280,10 @@ public class Chart {
 		}
 	}
 
-	/** 
-	 * Inserts fragmentary edges into (x3,y3), if non-empty, resulting from combining 
-	 * those in (x1,y1) and (x2,y2) using the glue rule. 
-	 * @throws ParseException 
+	/**
+	 * Inserts fragmentary edges into (x3,y3), if non-empty, resulting from combining
+	 * those in (x1,y1) and (x2,y2) using the glue rule.
+	 * @throws ParseException
 	 */
 	protected void insertCellFrag(int x1, int y1, int x2, int y2, int x3, int y3) throws ParseException {
 		if (_table[x1][y1] == null) return;
@@ -312,26 +313,24 @@ public class Chart {
         	}
         }
     }
-    
+
 	/** Returns whether the given cell is empty. */
     public boolean cellIsEmpty(int x, int y) {
 		Cell cell = get(x, y);
     	return cell.list.isEmpty();
     }
-    
-    
+
+
 	//-----------------------------------------------------------
-	// Unpacking 
-	
+	// Unpacking
+
 	/** Unpacks the edges in the given cell as an n-best list. */
 	public List<Edge> unpack(int x, int y) {
 		Cell cell = get(x, y);
 		// recursively unpack each edge
-	    @SuppressWarnings("unchecked")
-        Set<Edge> unpacked = new THashSet(new TObjectIdentityHashingStrategy());
-	    @SuppressWarnings("unchecked")
-        Set<Edge> startedUnpacking = new THashSet(new TObjectIdentityHashingStrategy());
-		for (Edge edge : cell.list) unpack(edge, unpacked, startedUnpacking); 
+		Set<Edge> unpacked = new TCustomHashSet<Edge>(new IdentityHashingStrategy<Edge>());
+		Set<Edge> startedUnpacking = new TCustomHashSet<Edge>(new IdentityHashingStrategy<Edge>());
+		for (Edge edge : cell.list) unpack(edge, unpacked, startedUnpacking);
 		// collect and sort results
         EdgeHash merged = new EdgeHash();
 		for (Edge edge : cell.list) {
@@ -380,11 +379,11 @@ public class Chart {
         // add to unpacked set
         unpacked.add(edge);
     }
-    
+
     // recursively unpack inputs, make alt combos and add to merged
     private void unpackAlt(Edge alt, Set<Edge> unpacked, Set<Edge> startedUnpacking, EdgeHash merged) {
         // unpack via input signs
-        DerivationHistory history = alt.sign.getDerivationHistory(); 
+        DerivationHistory history = alt.sign.getDerivationHistory();
         Sign[] inputSigns = history.getInputs();
         // base case: no inputs
         if (inputSigns == null) {
@@ -393,7 +392,7 @@ public class Chart {
         // otherwise recursively unpack
         Edge[] inputEdges = new Edge[inputSigns.length];
         for (int i = 0; i < inputSigns.length; i++) {
-            inputEdges[i] = Edge.getEdge(inputSigns[i]); 
+            inputEdges[i] = Edge.getEdge(inputSigns[i]);
             unpack(inputEdges[i], unpacked, startedUnpacking);
         }
         // then make edges for new combos, using same rule, and add to merged (if unseen)
@@ -413,14 +412,14 @@ public class Chart {
             _numUnpackingEdges++;
         }
 	}
-	
-    // returns a list of sign arrays, with each array of length inputEdges.length - i, 
+
+    // returns a list of sign arrays, with each array of length inputEdges.length - i,
     // representing all combinations of alt signs from i onwards
     private List<Sign[]> inputCombos(Edge[] inputEdges, int index) {
         Edge edge = inputEdges[index];
         // base case, inputEdges[last]
         if (index == inputEdges.length-1) {
-            List<Edge> altEdges = edge.altEdges; 
+            List<Edge> altEdges = edge.altEdges;
             List<Sign[]> retval = new ArrayList<Sign[]>(altEdges.size());
             for (Edge alt : altEdges) {
                 retval.add(new Sign[] { alt.sign });
@@ -430,7 +429,7 @@ public class Chart {
         // otherwise recurse on index+1
         List<Sign[]> nextCombos = inputCombos(inputEdges, index+1);
         // and make new combos
-        List<Edge> altEdges = edge.altEdges; 
+        List<Edge> altEdges = edge.altEdges;
         List<Sign[]> retval = new ArrayList<Sign[]>(altEdges.size() * nextCombos.size());
         for (Edge alt : altEdges) {
             for (int i = 0; i < nextCombos.size(); i++) {
@@ -451,17 +450,17 @@ public class Chart {
     		if (a[i] != b[i]) return false;
     	return true;
     }
-    
-	
+
+
 	//-----------------------------------------------------------
-	// Lazy Unpacking 
-	
-	/** 
-	 * Lazily unpacks the edges in the given cell as an n-best list 
-	 * using a variant of "cube pruning".  The algorithm essentially 
-	 * follows Algorithm 2 of Huang and Chiang (2005), with checking 
+	// Lazy Unpacking
+
+	/**
+	 * Lazily unpacks the edges in the given cell as an n-best list
+	 * using a variant of "cube pruning".  The algorithm essentially
+	 * follows Algorithm 2 of Huang and Chiang (2005), with checking
 	 * for spurious ambiguity.
-	 */ 
+	 */
 	@SuppressWarnings("unchecked")
 	public List<Edge> lazyUnpack(int x, int y) {
 		// if no pruning value set, use basic unpacking algorithm
@@ -470,7 +469,7 @@ public class Chart {
 		Cell cell = get(x, y);
 		// make top-level candidate list and derivs map
 		List<Candidate> topcands = new ArrayList<Candidate>(_pruneVal);
-		Map<Edge, List<Edge>> derivsmap = new THashMap(new TObjectIdentityHashingStrategy());
+		Map<Edge, List<Edge>> derivsmap = new TCustomHashMap<Edge, List<Edge>>(new IdentityHashingStrategy<Edge>());
 		for (Edge edge : cell.list) {
 			List<Candidate> cands = getCandidates(edge, derivsmap);
 			topcands.addAll(cands);
@@ -496,7 +495,7 @@ public class Chart {
 		// done
 		return retval;
 	}
-	
+
     // lazily find k-best derivations, if edge not already visited
     private void findKBest(Edge edge, Map<Edge, List<Edge>> derivsmap) {
     	if (derivsmap.containsKey(edge)) return;
@@ -510,7 +509,7 @@ public class Chart {
     	Collections.sort(derivs, edgeComparator);
     	derivsmap.put(edge, derivs);
     }
-    
+
     // appends next candidate, expands frontier
     private void appendNext(List<Candidate> cands, EdgeHash merged, Map<Edge, List<Edge>> derivsmap) {
     	// append next
@@ -524,30 +523,30 @@ public class Chart {
 			int[] nextIndices = new int[cand.indices.length];
 			for (int m=0; m < nextIndices.length; m++) nextIndices[m] = cand.indices[m];
 			nextIndices[i]++;
-			Edge next = getEdgeForIndices(cand.edge, cand.inputReps, nextIndices, derivsmap); 
+			Edge next = getEdgeForIndices(cand.edge, cand.inputReps, nextIndices, derivsmap);
 			// add next candidate, if any, if not already there
 			if (next != null) {
 				Candidate nextCand = new Candidate(next, cand.inputReps, nextIndices);
 				if (!cands.contains(nextCand)) {
 					int index = Collections.binarySearch(cands, nextCand);
 		            index = Math.abs(index) - 1; // convert index to insertion point
-		            if (index >= 0) 
+		            if (index >= 0)
 		            	cands.add(index, nextCand);
 		            else cands.add(nextCand);
 				}
 			}
 		}
     }
-    
-	// candidate is an edge plus an array of indices for keeping track of 
-	// where to pull candidates from next (or null if lexical),  
+
+	// candidate is an edge plus an array of indices for keeping track of
+	// where to pull candidates from next (or null if lexical),
     // using the input representatives
 	private static class Candidate implements Comparable<Candidate> {
 		Edge edge; Edge[] inputReps; int[] indices;
-		Candidate(Edge edge, Edge[] inputReps, int[] indices) { 
-			this.edge = edge; this.inputReps = inputReps; this.indices = indices; 
+		Candidate(Edge edge, Edge[] inputReps, int[] indices) {
+			this.edge = edge; this.inputReps = inputReps; this.indices = indices;
 		}
-		public int compareTo(Candidate c) { 
+		public int compareTo(Candidate c) {
 			int retval = edgeComparator.compare(edge, c.edge);
 			if (retval != 0) return retval;
 			if (indices == null && c.indices == null) return 0;
@@ -575,12 +574,12 @@ public class Chart {
 			return edge.equals(c.edge);
 		}
 	}
-	
+
 	// get candidates for unpacking an edge
 	private List<Candidate> getCandidates(Edge edge, Map<Edge, List<Edge>> derivsmap) {
 		List<Candidate> retval = new ArrayList<Candidate>(_pruneVal);
 		// make initial candidate for each alt
-		// nb: should only get initial candidates for representative edges, 
+		// nb: should only get initial candidates for representative edges,
 		//     but may as well ensure that at least this edge is included
 		List<Edge> alts = new ArrayList<Edge>(edge.getAltEdges());
 		if (alts.isEmpty()) alts.add(edge);
@@ -608,7 +607,7 @@ public class Chart {
 		// done
 		return retval;
 	}
-    
+
 	// returns the edge for the given input indices, or null if none
 	private Edge getEdgeForIndices(Edge edge, Edge[] inputReps, int[] indices, Map<Edge, List<Edge>> derivsmap) {
 		DerivationHistory history = edge.sign.getDerivationHistory();
@@ -620,7 +619,7 @@ public class Chart {
             // get derivs
             List<Edge> inputDerivs = derivsmap.get(inputEdge);
             // check index, return null if out of bounds
-            if (indices[i] < inputDerivs.size()) 
+            if (indices[i] < inputDerivs.size())
             	combo[i] = inputDerivs.get(indices[i]).sign;
             else return null;
         }
@@ -638,17 +637,17 @@ public class Chart {
         // score it
         boolean complete = (sign.getWords().size() == _size);
         retval.setScore(_signScorer.score(sign, complete));
-        // done 
+        // done
 		return retval;
 	}
-	
+
 	// sort and prune candidate list
 	private void sortAndPrune(List<Candidate> cands) {
 		Collections.sort(cands);
 		while (cands.size() > _pruneVal) cands.remove(cands.size()-1);
 	}
-	
-    
+
+
 	//-----------------------------------------------------------
 
 	/** Saves the chart entries to the given file. */
@@ -657,7 +656,7 @@ public class Chart {
 		out.writeObject(_table);
 		out.flush(); out.close();
 	}
-	
+
 	/** Loads the chart entries from the given file. */
 	public void loadChartEntries(File file) throws IOException {
 		ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)));
@@ -673,10 +672,10 @@ public class Chart {
 		}
 		in.close();
 	}
-	
-	
+
+
 	//-----------------------------------------------------------
-    
+
 	/** Returns the number of entries in each cell in the chart. */
 	public String toString() {
 		StringBuffer sb = new StringBuffer();

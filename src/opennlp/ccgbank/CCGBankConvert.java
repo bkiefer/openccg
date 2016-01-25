@@ -1,23 +1,23 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2005-2009 Scott Martin, Rajakrishan Rajkumar and Michael White
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //////////////////////////////////////////////////////////////////////////////
 
 /*
- * $Id: CCGBankConvert.java,v 1.8 2011/11/10 22:18:42 mwhite14850 Exp $ 
+ * $Id: CCGBankConvert.java,v 1.8 2011/11/10 22:18:42 mwhite14850 Exp $
  */
 package opennlp.ccgbank;
 
@@ -43,9 +43,9 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DefaultLogger;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.ProjectHelper;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.transform.JDOMSource;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.transform.JDOMSource;
 import org.xml.sax.InputSource;
 
 
@@ -53,54 +53,54 @@ import org.xml.sax.InputSource;
  * Converts the CCGBank to a modified version for grammar extraction.
  * <p>
  * Within this task, a series of <code>FileList</code>s is specified. These
- * files are the lists of xsltProcessors that should be used to transform the 
+ * files are the lists of xsltProcessors that should be used to transform the
  * CCGBank. These xsltProcessors are processed in the order they occur in the
- * <code>FileList</code> specified within this task. 
+ * <code>FileList</code> specified within this task.
  * @author <a href="http://www.ling.osu.edu/~scott/">Scott Martin</a>
  * @author Rajakrishnan Rajkumar
  * @version $Revision: 1.8 $
  * @see CCGBankExtract
  */
 public class CCGBankConvert extends CCGBankTask {
-	
+
 	/** Flag for whether to keep case-marking preps in PP categories; defaults to false. */
 	boolean keepPPHeads = false;
 
 	TreeWalker treeWalker = new TreeWalker();
-	
+
 	CCGbankDerivation deriv = null;
 	File auxFileDirectory, bbnAuxDirectory, wordsFile, stemsFile,
 		currentDirectory = null;
-	
+
 	/* (non-Javadoc)
 	 * @see opennlp.ccgbank.CCGBankTask#start()
 	 */
 	@Override
 	protected void start() throws BuildException {
-		
+
 		InfoHelper.init(auxFileDirectory, bbnAuxDirectory);
 		String trueCaseListPath=auxFileDirectory.getAbsolutePath()+"/"+"truecase-list.gz";
 		XSLTTrueCaser.init(trueCaseListPath);
-		
+
 		try {
 			MorphLookup.init(wordsFile, stemsFile);
-			
+
 		}
 		catch(IOException io) {
 			throw new BuildException("problem loading words or stems", io,
 					getLocation());
 		}
-		
+
 		xsltProcessor = useXMLFilter
 			? new XMLFilterProcessor(this, this)
 			: new TemplatesProcessor(this);
-		
+
 		// "prime" parser
 		// TODO fix this hack!!
 		try {
 			File tmp = File.createTempFile(getClass().getName(), "prime");
 			tmp.deleteOnExit();
-						
+
 			deriv = new CCGbankDerivation(new FileReader(tmp));
 		}
 		catch(IOException e) {
@@ -112,17 +112,17 @@ public class CCGBankConvert extends CCGBankTask {
 	/** Read aux files for the next WSJ section **/
 	@Override
 	protected void nextDirectory(File section) throws BuildException {
-		
+
 		currentDirectory = section;
-		
+
 		// only create if a numbered directory
 		File d = new File(target, currentDirectory.getName());
 		if(!d.exists() && !d.mkdirs()) {
 			throw new BuildException("unable to create directory " + d);
 		}
-		
+
 		//Read in aux files
-		try { 
+		try {
 			InfoHelper.readBBNAuxfiles(section.getName());
 			InfoHelper.readQuoteAuxfiles(section.getName());
 			InfoHelper.readPTBAuxfiles(section.getName());
@@ -137,49 +137,49 @@ public class CCGBankConvert extends CCGBankTask {
 	protected InputSource nextFile(File file) throws BuildException {
 		try {
 			Reader reader = new BufferedReader(new FileReader(file));
-			
-			if(deriv == null) { 
+
+			if(deriv == null) {
 				deriv = new CCGbankDerivation(reader);
 			}
 			else {
 				CCGbankDerivation.ReInit(reader);
 			}
-			
+
 			SimpleNode root = CCGbankDerivation.start();
 			Element result = new Element("Derivation");
-			
+
 			String fileName = file.getName();
 			int start = fileName.contains(File.separator)
 				? fileName.lastIndexOf(File.separatorChar) : 0;
-			
+
 			StringBuilder sb = new StringBuilder(
 			    	fileName.substring(start, fileName.lastIndexOf('.')));
 		    sb.append(".xml");
-		    
+
 		    File targetDir = new File(target, currentDirectory.getName());
-		    File targetFile = new File(targetDir, sb.toString());			        
-		    
+		    File targetFile = new File(targetDir, sb.toString());
+
 		    xsltProcessor.resetSerializer();
 		    xsltProcessor.setTarget(targetFile);
-		    		    
+
 		    Document doc = new Document(treeWalker.eval(root, result));
-		    
+
 		    // TODO attempt to get error reporting for file / line !!
 		    Source s = new JDOMSource(doc);
 		    s.setSystemId(file.toURI().toString());
-		    
+
 		    return SAXSource.sourceToInputSource(s);
 		}
 		catch(Exception e) {
 			throw new BuildException(e, getLocation());
 		}
 	}
-	
-	
+
+
 	/** @param keepPPHeads the keepPPHeads value to set */
 	public void setKeepPPHeads(boolean keepPPHeads) { this.keepPPHeads = keepPPHeads; }
-	
-	
+
+
 	/**
 	 * @param stemsFile the stemsFile to set
 	 */
@@ -187,7 +187,7 @@ public class CCGBankConvert extends CCGBankTask {
 		this.stemsFile = stemsFile;
 	}
 
-	
+
 	/**
 	 * @param wordsFile the wordsFile to set
 	 */
@@ -200,9 +200,9 @@ public class CCGBankConvert extends CCGBankTask {
 	 */
 	public void setAuxFileDirectory(File auxFileDirectory) {
 		this.auxFileDirectory = auxFileDirectory;
-		
+
 	}
-	
+
 	/**
 	 * @param bbnAuxDirectory the bbnAuxDirectory to set
 	 */
@@ -213,28 +213,28 @@ public class CCGBankConvert extends CCGBankTask {
 	public static void main(String[] args) {
 		File baseDir = new File(System.getProperty("user.dir"));
 		File buildFile = new File(baseDir, "build.xml");
-		
+
 		Project project = new Project();
-		
+
 		project.init();
-		
+
 		project.setBaseDir(baseDir);
-		
+
 		ProjectHelper helper = ProjectHelper.getProjectHelper();
-		
+
 		project.setProjectReference(helper);
-		
+
 		helper.parse(project, buildFile);
-		
+
 		DefaultLogger logger = new DefaultLogger();
 		logger.setErrorPrintStream(System.err);
 		logger.setOutputPrintStream(System.out);
-		
+
 		project.addBuildListener(logger);
-		
-		project.executeTarget("convert-base");		
+
+		project.executeTarget("convert-base");
 	}
-	
+
 	class TreeWalker {
 		// General purpose datastructure to store ccgbank indices of categories.
 		// Refreshed after the lifespan of a node is over.
@@ -242,7 +242,7 @@ public class CCGBankConvert extends CCGBankTask {
 		// flag for whether under a leaf node;
 		// used to control whether to add fs id's
 		private boolean underLeaf = false;
-		
+
 		public Element eval(SimpleNode node, Element root) throws Exception {
 
 			// No:of children of any given node
@@ -357,7 +357,7 @@ public class CCGBankConvert extends CCGBankTask {
 			return root;
 
 		}
-		
+
 		public Element ccinserter(SimpleNode node, Element leaf) {
 
 			// This function produces complexcat/treenode/leafnode elements.
@@ -572,13 +572,13 @@ public class CCGBankConvert extends CCGBankTask {
 			return leaf;
 		}
 	}
-	
+
 	// strips PP heads if apropos
 	private String stripPPHeads(String cat) {
 		if (keepPPHeads) return cat;
 		return cat.replaceAll("pp\\[[a-z]+\\]", "pp");
 	}
-	
+
 	// adjusts role, stripping PP head if apropos
 	private String adjustRole(String role) {
 		role = role.replaceFirst("ARG", "Arg");

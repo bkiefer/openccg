@@ -24,7 +24,7 @@ import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 
 // jdom
-import org.jdom.*;
+import org.jdom2.*;
 
 import java.io.*;
 import java.net.*;

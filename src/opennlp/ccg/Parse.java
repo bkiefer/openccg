@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2010 Michael White
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -23,10 +23,10 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.output.Format;
-import org.jdom.output.XMLOutputter;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 
 import opennlp.ccg.grammar.Grammar;
 import opennlp.ccg.hylo.HyloHelper;
@@ -53,19 +53,19 @@ import opennlp.ccgbank.extract.Testbed;
 public class Parse {
 
 	public static void main(String[] args) throws IOException {
-		
-        String usage = "Usage: java opennlp.ccg.Parse \n" + 
-        	"  (-g <grammarfile>) \n" + 
+
+        String usage = "Usage: java opennlp.ccg.Parse \n" +
+        	"  (-g <grammarfile>) \n" +
         	"  -parsescorer <scorerclass> \n" +
         	"  (-supertagger <supertaggerclass> | -stconfig <configfile>) \n" +
 	        "  (-nbestListSize <nbestListSize>) \n" +
         	"  <inputfile> <outputfile>";
-        
+
         if (args.length == 0 || args[0].equals("-h")) {
             System.out.println(usage);
             System.exit(0);
         }
-        
+
         // args
         String grammarfile = "grammar.xml";
         String inputfile = null;
@@ -84,13 +84,13 @@ public class Parse {
         }
 	if (nbestListSize < 1) nbestListSize = 1;
 
-        if (inputfile == null || outputfile == null || 
-        	parseScorerClass == null || (supertaggerClass == null && stconfig == null)) 
+        if (inputfile == null || outputfile == null ||
+        	parseScorerClass == null || (supertaggerClass == null && stconfig == null))
         {
             System.out.println(usage);
             System.exit(0);
         }
-        
+
 		// make test doc, sign map
 		Document outDoc = new Document();
 		Element outRoot = new Element("regression");
@@ -103,7 +103,7 @@ public class Parse {
         Grammar grammar = new Grammar(grammarURL);
         Tokenizer tokenizer = grammar.lexicon.tokenizer;
         System.out.println();
-        
+
         // set up parser
         Parser parser = new Parser(grammar);
         // instantiate scorer
@@ -131,7 +131,7 @@ public class Parse {
         } catch (Exception exc) {
             throw (RuntimeException) new RuntimeException().initCause(exc);
         }
-        
+
         // loop through input
         BufferedReader in = new BufferedReader(new FileReader(inputfile));
         String line;
@@ -156,7 +156,7 @@ public class Parse {
 				// convert LF
 				LF flatLF = cat.getLF();
 				cat = cat.copy();
-				Nominal index = cat.getIndexNominal(); 
+				Nominal index = cat.getIndexNominal();
 				convertedLF = HyloHelper.compactAndConvertNominals(flatLF, index, thisParse);
 				// get pred info
 				predInfoMap.clear();
@@ -189,7 +189,7 @@ public class Parse {
 		count++;
         }
         System.out.println();
-        
+
 		// write test doc, saved signs
         System.out.println("Writing parses to " + outputfile);
 		XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
@@ -197,7 +197,7 @@ public class Parse {
 		outputter.output(outDoc, new FileOutputStream(regressionFile));
 		RegressionInfo.writeSerFile(signMap, regressionFile);
         System.out.println();
-		
+
         // done
         in.close();
         System.out.println("Done.");

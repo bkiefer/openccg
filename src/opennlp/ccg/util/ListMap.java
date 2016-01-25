@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2006 Michael White (The Ohio State University)
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -18,39 +18,40 @@
 
 package opennlp.ccg.util;
 
-import gnu.trove.*;
+import gnu.trove.map.hash.*;
+import gnu.trove.strategy.*;
 import java.util.*;
 
 /**
- * A map where putting a value does not replace an old value 
+ * A map where putting a value does not replace an old value
  * but is instead included in a list of values for that key.
- * The map may use identity equals on keys. 
+ * The map may use identity equals on keys.
  * (NB: A ListMap is essentially a GroupMap that uses lists instead of sets.)
  *
  * @author      Michael White
  * @version     $Revision: 1.1 $, $Date: 2006/08/15 18:21:31 $
  */
 public class ListMap<KeyType,ValType> {
-    
+
 	// the underlying map
-	private THashMap map;
-	
+	private Map map;
+
 	/** Default constructor. */
 	public ListMap() { this(false); }
-	
+
 	/** Constructor with flag for whether to use identity instead of <code>equals</code> on keys. */
 	public ListMap(boolean useIdentityEquals) {
-		if (useIdentityEquals) map = new THashMap(new TObjectIdentityHashingStrategy());
+		if (useIdentityEquals) map = new TCustomHashMap(new IdentityHashingStrategy());
 		else map = new THashMap();
 	}
-	
+
     /** Adds the given key-value pair to the map, and returns null. */
 	@SuppressWarnings("unchecked")
 	public Object put(KeyType key, ValType value) {
         // get current val
         Object currentVal = map.get(key);
         // if none, add value to map
-        if (currentVal == null) { 
+        if (currentVal == null) {
         	map.put(key, value);
         }
         // if already a list, add value to list
@@ -84,13 +85,13 @@ public class ListMap<KeyType,ValType> {
         map.put(key, list);
         return list;
     }
-    
+
     /** Adds a key-value pair to the map for all the given vals. */
     public void putAll(KeyType key, Collection<ValType> vals) {
     	for (ValType val : vals) put(key, val);
     }
-    
-    
+
+
     /** Returns the size of the underlying map. */
     public int size() { return map.size(); }
 
@@ -99,12 +100,12 @@ public class ListMap<KeyType,ValType> {
 	public Set<KeyType> keySet() {
     	return (Set<KeyType>) map.keySet();
     }
-    
+
     /** Returns whether the keys contain the given one. */
     public boolean containsKey(KeyType key) {
     	return map.containsKey(key);
     }
-    
+
     /** Removes the given key, returning its previous value (if any). */
     List<ValType> remove(KeyType key) {
     	List<ValType> retval = get(key);

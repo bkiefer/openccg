@@ -28,7 +28,7 @@ import opennlp.ccg.hylo.*;
 //import opennlp.ccg.ngrams.*;
 //import opennlp.ccg.test.*;
 
-//import org.jdom.*;
+//import org.jdom2.*;
 
 import java.io.*;
 import java.net.*;

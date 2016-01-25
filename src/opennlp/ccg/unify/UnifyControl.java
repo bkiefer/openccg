@@ -20,7 +20,7 @@ package opennlp.ccg.unify;
 
 import opennlp.ccg.synsem.*;
 
-import gnu.trove.*;
+import gnu.trove.map.hash.*;
 
 /**
  * Center of command for the unification process.  

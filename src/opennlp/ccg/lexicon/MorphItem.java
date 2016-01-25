@@ -18,7 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package opennlp.ccg.lexicon;
 
-import org.jdom.*;
+import org.jdom2.*;
 
 import opennlp.ccg.grammar.Grammar;
 

@@ -1,19 +1,19 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2003-4 Jason Baldridge, Gann Bierner, 
-//                      University of Edinburgh (Michael White), 
+// Copyright (C) 2003-4 Jason Baldridge, Gann Bierner,
+//                      University of Edinburgh (Michael White),
 //                      Alexandros Triantafyllidis and David Reitter
 // Copyright (C) 2006 Ben Wing
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -32,7 +32,7 @@ import opennlp.ccg.ngrams.*;
 import opennlp.ccg.test.*;
 import opennlp.ccg.realize.Edge; // only realization edges referenced (for preferences)
 
-import org.jdom.*;
+import org.jdom2.*;
 
 import java.io.*;
 import java.net.*;
@@ -50,40 +50,40 @@ import java.util.prefs.*;
  * @version $Revision: 1.67 $, $Date: 2011/12/13 04:00:54 $
  */
 public class TextCCG {
-    
+
     /** Preference key for showing all results. */
     public static final String SHOW_ALL_RESULTS = "Show All Results";
-    
+
     /** Preference key for showing derivations. */
     public static final String SHOW_DERIVATIONS = "Show Derivations";
-    
+
     /** Preference key for showing features. */
     public static final String SHOW_FEATURES = "Show Features";
-    
+
     /** Preference key for showing semantics. */
     public static final String SHOW_SEMANTICS = "Show Semantics";
-    
+
     /** Preference key for showing features. */
     public static final String FEATURES_TO_SHOW = "Features to Show";
-    
+
     /** Preference key for showing realizer timing. */
     public static final String SHOW_TIMING = "Show Timing";
-    
+
     /** Preference key for showing incomplete edges during realization. */
     public static final String SHOW_INCOMPLETE_EDGES = "Show Incomplete Edges";
-    
+
     /** Preference key for visualizing a derivation. */
     public static final String VISUALIZE = "Visualize";
 
     /** Preference key for command line history. */
-    public static final String HISTORY = "Command Line History";	
-	
-	
+    public static final String HISTORY = "Command Line History";
+
+
     /** Main method for tccg. */
     @SuppressWarnings("unchecked")
-	public static void main(String[] args) throws IOException, LexException { 
+	public static void main(String[] args) throws IOException, LexException {
 
-        String usage = "java opennlp.ccg.TextCCG " + 
+        String usage = "java opennlp.ccg.TextCCG " +
                        "(<grammarfile>) | (-exportprefs <prefsfile>) | (-importprefs <prefsfile>)";
 
         if (args.length > 0 && args[0].equals("-h")) {
@@ -91,17 +91,17 @@ public class TextCCG {
             System.exit(0);
         }
 
-        // args        
+        // args
         String grammarfile = "grammar.xml";
         String prefsfile = null;
         boolean exportPrefs = false;
         boolean importPrefs = false;
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-exportprefs")) {
-                exportPrefs = true; prefsfile = args[++i]; continue; 
+                exportPrefs = true; prefsfile = args[++i]; continue;
             }
             if (args[i].equals("-importprefs")) {
-                importPrefs = true; prefsfile = args[++i]; continue; 
+                importPrefs = true; prefsfile = args[++i]; continue;
             }
             grammarfile = args[i];
         }
@@ -127,7 +127,7 @@ public class TextCCG {
         URL grammarURL = new File(grammarfile).toURI().toURL();
         System.out.println("Loading grammar from URL: " + grammarURL);
         Grammar grammar = new Grammar(grammarURL);
-		
+
 		if (grammar.getName() != null)
 			System.out.println("Grammar '" + grammar.getName() + "' loaded.");
         System.out.println();
@@ -141,20 +141,20 @@ public class TextCCG {
         LF[] lastLFs = null;
         String lastSentence = "";
         int lastReading = 0;
-        
-		// prepare to accept input from user 
-        String[] completions = 
-            { ":sh", ":v", ":reset", ":feats", ":nofeats", ":foff", ":sem", ":nosem", ":all", ":notall", 
-              ":derivs", ":noderivs", ":doff", ":vison", ":visoff", 
+
+		// prepare to accept input from user
+        String[] completions =
+            { ":sh", ":v", ":reset", ":feats", ":nofeats", ":foff", ":sem", ":nosem", ":all", ":notall",
+              ":derivs", ":noderivs", ":doff", ":vison", ":visoff",
               ":wordpos", ":nowordpos", ":eisner", ":noeisner",
-              ":ptl", ":noptl", ":pel", ":nopel", ":ppv", ":noppv", ":pcpv", ":nopcpv", ":plazy", ":noplazy", 
+              ":ptl", ":noptl", ":pel", ":nopel", ":ppv", ":noppv", ":pcpv", ":nopcpv", ":plazy", ":noplazy",
               ":r", ":sel", ":2xml", ":2tb", ":2apml", ":tl", ":notl", ":el", ":noel",
-              ":nbtl", ":nonbtl", ":pv", ":nopv", ":cpv", ":nocpv", ":upon", ":upoff", 
+              ":nbtl", ":nonbtl", ":pv", ":nopv", ":cpv", ":nocpv", ":upon", ":upoff",
               ":t", ":toff", ":inc", ":noinc",
               ":ion", ":ioff", ":mion", ":mioff", ":con", ":coff", ":flon", ":floff", ":ccon", ":ccoff", ":pon", ":poff",
               ":q", ":h"};
 		LineReader lineReader = LineReader.createLineReader(completions);
-		
+
 		// initialize history, per grammar, from prefs
 		String historyKey = HISTORY + "_" + grammar.getName();
 		String histStr = prefs.get(historyKey, "");
@@ -168,12 +168,12 @@ public class TextCCG {
         System.out.println("Ctrl-P (prev) and Ctrl-N (next) to access the command history, ");
         System.out.println("and emacs-style control keys to edit the line.");
         System.out.println();
-        
+
         while (true) {
-        
+
 			String input = lineReader.readLine("tccg> ");
 			if (input == null) break; // control-D or the like
-            input = input.trim();			
+            input = input.trim();
 			if (input.equals(":show settings") || input.equals(":sh")) {
                 showSettings(prefs);
             } else if (input.equals(":v")) {
@@ -196,18 +196,18 @@ public class TextCCG {
                 prefs.putBoolean(SHOW_FEATURES, false);
                 prefs.putBoolean(SHOW_SEMANTICS, false);
                 prefs.put(FEATURES_TO_SHOW, "");
-                prefs.putBoolean(VISUALIZE, false);     
+                prefs.putBoolean(VISUALIZE, false);
                 prefs.put("VISFNAME", "");
                 prefs.putBoolean(Converter.USE_WORD_POSITIONS_FOR_ATOM_CONVERSION, true);
                 prefs.putBoolean(AbstractCompositionRule.EISNER_CONSTRAINTS, true);
-                AbstractCompositionRule.useEisnerConstraints = true; 
+                AbstractCompositionRule.useEisnerConstraints = true;
                 prefs.putInt(Parser.PARSE_TIME_LIMIT, Parser.NO_TIME_LIMIT);
                 prefs.putInt(Parser.PARSE_EDGE_LIMIT, Parser.NO_EDGE_LIMIT);
                 prefs.putInt(Parser.PARSE_PRUNING_VALUE, Parser.NO_PRUNING);
                 prefs.putInt(Parser.PARSE_CELL_PRUNING_VALUE, Parser.NO_PRUNING);
                 prefs.putBoolean(Parser.PARSE_LAZY_UNPACKING, true);
                 prefs.putBoolean(EdgeFactory.USE_INDEXING, true);
-                prefs.putBoolean(EdgeFactory.ALLOW_MISSING_INDEX_COMBOS, false);		
+                prefs.putBoolean(EdgeFactory.ALLOW_MISSING_INDEX_COMBOS, false);
                 prefs.putBoolean(EdgeFactory.USE_CHUNKS, true);
                 prefs.putBoolean(EdgeFactory.USE_FEATURE_LICENSING, true);
                 prefs.putBoolean(opennlp.ccg.realize.Chart.USE_COMBOS, true);
@@ -338,9 +338,9 @@ public class TextCCG {
             } else if (input.equals(":indexing off") || input.equals(":ioff")) {
                 prefs.putBoolean(EdgeFactory.USE_INDEXING, false);
             } else if (input.equals(":missing index combos on") || input.equals(":mion")) {
-                prefs.putBoolean(EdgeFactory.ALLOW_MISSING_INDEX_COMBOS, true);		
+                prefs.putBoolean(EdgeFactory.ALLOW_MISSING_INDEX_COMBOS, true);
             } else if (input.equals(":missing index combos off") || input.equals(":mioff")) {
-                prefs.putBoolean(EdgeFactory.ALLOW_MISSING_INDEX_COMBOS, false);		
+                prefs.putBoolean(EdgeFactory.ALLOW_MISSING_INDEX_COMBOS, false);
             } else if (input.equals(":chunks on") || input.equals(":con")) {
                 prefs.putBoolean(EdgeFactory.USE_CHUNKS, true);
             } else if (input.equals(":chunks off") || input.equals(":coff")) {
@@ -439,30 +439,30 @@ public class TextCCG {
                 System.out.println("Wrote \"" + lastSentence + "\" to \"" + filename + "\" as APML");
             } else if (input.startsWith(":vison")) {
                 prefs.putBoolean(VISUALIZE, true);
-                if ((input.startsWith(":vison ")) && (input.length( )>= 8)) {   
+                if ((input.startsWith(":vison ")) && (input.length( )>= 8)) {
                     String fname = input.substring(7);
-                    if (fname.lastIndexOf('.')!=-1) {  
+                    if (fname.lastIndexOf('.')!=-1) {
                         System.out.println("Filename should not contain a suffix. Suffixes .tex and .dvi are assumed.");
                         prefs.put("VISFNAME", "");
-                    } 
+                    }
                     else
                         prefs.put("VISFNAME", fname);
-                } 
+                }
                 else
                     prefs.put("VISFNAME", "");
             } else if (input.equals(":visoff")) {
-                prefs.putBoolean(VISUALIZE, false);     
+                prefs.putBoolean(VISUALIZE, false);
                 prefs.put("VISFNAME", "");
             } else if (input.equals(":wordpos")) {
-                prefs.putBoolean(Converter.USE_WORD_POSITIONS_FOR_ATOM_CONVERSION, true);     
+                prefs.putBoolean(Converter.USE_WORD_POSITIONS_FOR_ATOM_CONVERSION, true);
             } else if (input.equals(":nowordpos")) {
-                prefs.putBoolean(Converter.USE_WORD_POSITIONS_FOR_ATOM_CONVERSION, false);     
+                prefs.putBoolean(Converter.USE_WORD_POSITIONS_FOR_ATOM_CONVERSION, false);
             } else if (input.equals(":eisner")) {
                 prefs.putBoolean(AbstractCompositionRule.EISNER_CONSTRAINTS, true);
-                AbstractCompositionRule.useEisnerConstraints = true; 
+                AbstractCompositionRule.useEisnerConstraints = true;
             } else if (input.equals(":noeisner")) {
                 prefs.putBoolean(AbstractCompositionRule.EISNER_CONSTRAINTS, false);
-                AbstractCompositionRule.useEisnerConstraints = false; 
+                AbstractCompositionRule.useEisnerConstraints = false;
             } else if (input.startsWith(":parse time limit") || input.startsWith(":ptl")) {
                 String[] tokens = input.split("\\s+");
                 String last = tokens[tokens.length-1];
@@ -508,14 +508,14 @@ public class TextCCG {
             } else if (input.startsWith(":no parse cell pruning value") || input.startsWith(":nopcpv")) {
                 prefs.putInt(Parser.PARSE_CELL_PRUNING_VALUE, Parser.NO_PRUNING);
             } else if (input.equals(":plazy")) {
-                prefs.putBoolean(Parser.PARSE_LAZY_UNPACKING, true);     
+                prefs.putBoolean(Parser.PARSE_LAZY_UNPACKING, true);
             } else if (input.equals(":noplazy")) {
-                prefs.putBoolean(Parser.PARSE_LAZY_UNPACKING, false);     
-            } else { 
+                prefs.putBoolean(Parser.PARSE_LAZY_UNPACKING, false);
+            } else {
                 try {
                     if (input.length() == 0) {
-                        if (lastSentence.length() > 0) { 
-                            input = lastSentence; 
+                        if (lastSentence.length() > 0) {
+                            input = lastSentence;
                         } else {
                             System.out.println("Nothing to parse!");
                             continue;
@@ -528,21 +528,21 @@ public class TextCCG {
                     int resLength = results.length;
                     switch (resLength) {
                         case 0: break;
-                        case 1: 
-                            System.out.println(resLength + " parse found.\n"); 
+                        case 1:
+                            System.out.println(resLength + " parse found.\n");
                             break;
-                        default: System.out.println(resLength + " parses found.\n"); 
+                        default: System.out.println(resLength + " parses found.\n");
                     }
-                    
+
                     lastResults = results;
                     lastLFs = new LF[resLength];
                     if (input.length() > 0) { lastSentence = input; }
                     lastReading = 0;
-    
+
                     boolean showall = prefs.getBoolean(SHOW_ALL_RESULTS, false);
                     boolean showderivs = prefs.getBoolean(SHOW_DERIVATIONS, false);
                     boolean showsem = prefs.getBoolean(SHOW_SEMANTICS, true);
-                    boolean visualize = prefs.getBoolean(VISUALIZE, false); 
+                    boolean visualize = prefs.getBoolean(VISUALIZE, false);
                     boolean showfeats = prefs.getBoolean(SHOW_FEATURES, false);
                     String feats_to_show = prefs.get(FEATURES_TO_SHOW, "");
                     Visualizer vis = null;
@@ -550,13 +550,13 @@ public class TextCCG {
 				    grammar.prefs.showSem = showsem;
 				    grammar.prefs.showFeats = showfeats;
 				    grammar.prefs.featsToShow = feats_to_show;
-                    if (visualize) { 
-                        vis = new Visualizer(); 
+                    if (visualize) {
+                        vis = new Visualizer();
                         if (prefs.get("VISFNAME", "").equals(""))
                             baseFileName = vis.getTempFileName();
                         else
                             baseFileName = prefs.get("VISFNAME", "");
-                        vis.writeHeader(baseFileName+".tex");  
+                        vis.writeHeader(baseFileName+".tex");
                     }
                     int numToShow = (showall) ? resLength : 1;
                     for (int i=0; i < numToShow; i++) {
@@ -564,13 +564,13 @@ public class TextCCG {
                         LF convertedLF = null;
                         if (cat.getLF() != null) {
                             cat = cat.copy();
-                            Nominal index = cat.getIndexNominal(); 
+                            Nominal index = cat.getIndexNominal();
                             Sign rootSign = results[i]; // could add a switch here for naming convention
                             convertedLF = HyloHelper.compactAndConvertNominals(cat.getLF(), index, rootSign);
-                            lastLFs[i] = convertedLF; 
+                            lastLFs[i] = convertedLF;
                             cat.setLF(null);
                         }
-                        String parseNum = (resLength == 1) ? "Parse: " : ("Parse "+(i+1)+": "); 
+                        String parseNum = (resLength == 1) ? "Parse: " : ("Parse "+(i+1)+": ");
                         System.out.print(parseNum + cat.toString());
                         if (showsem && convertedLF != null) {
                             System.out.println(" : ");
@@ -585,25 +585,25 @@ public class TextCCG {
                             vis.saveTeXFile(results[i], baseFileName + ".tex" );
                     }
                     if (visualize) {
-                        vis.writeFooter(baseFileName + ".tex"); 
-                        vis.show(baseFileName); 
+                        vis.writeFooter(baseFileName + ".tex");
+                        vis.show(baseFileName);
                         if (prefs.get("VISFNAME","").equals("")) // If temporary file,
                             vis.cleanFiles(baseFileName);       // clean it
                         else {
                             vis.cleanAuxFiles(baseFileName);
                             System.out.println("Saved to files " + baseFileName + ".tex and " + baseFileName + ".dvi");
                         }
-                        vis = null; 
+                        vis = null;
                     }
                 } catch(ParseException pe) {
                     System.out.println(pe);
                 }
             }
         }
-		
+
 		// store command input history in preferences
 		prefs.put(historyKey, lineReader.getCommandHistory());
-		
+
         // done
 		System.out.println("Exiting tccg.");
 		System.exit(0);
@@ -613,12 +613,12 @@ public class TextCCG {
     // reads the next token in the string as a filename
     private static String readFilename(String s) throws IOException {
         StreamTokenizer st = new StreamTokenizer(new StringReader(s));
-        st.wordChars('/','/'); st.wordChars('\\','\\'); st.wordChars(':',':'); 
+        st.wordChars('/','/'); st.wordChars('\\','\\'); st.wordChars(':',':');
         st.nextToken();
         return st.sval;
     }
-    
-    
+
+
     /** Shows help for the command-line tool. */
     public static void showHelp() {
         System.out.println();
@@ -688,7 +688,7 @@ public class TextCCG {
         System.out.println("  :ccoff\t\tturn collected combos off");
         System.out.println("  :pon\t\t\tturn packing on");
         System.out.println("  :poff\t\t\tturn packing off");
-        
+
         System.out.println();
         System.out.println("  :q\t\t\tquit tccg");
         System.out.println("  :h\t\t\tshow this message");
@@ -698,29 +698,29 @@ public class TextCCG {
     /** Shows current settings. */
     public static void showSettings(Preferences prefs) {
         System.out.println();
-        System.out.println("Current preference settings:"); 
+        System.out.println("Current preference settings:");
         System.out.println();
         boolean showfeats = prefs.getBoolean(SHOW_FEATURES, false);
         boolean showsem = prefs.getBoolean(SHOW_SEMANTICS, true);
         String feats = prefs.get(FEATURES_TO_SHOW, "");
-        System.out.println("  show feats:\t\t" + showfeats); 
+        System.out.println("  show feats:\t\t" + showfeats);
         System.out.println("  show semantics:\t" + showsem);
         if (showfeats) {
-            System.out.println("  feats to show:\t" + ((feats.length() > 0) ? feats : "all")); 
+            System.out.println("  feats to show:\t" + ((feats.length() > 0) ? feats : "all"));
         }
         boolean showall = prefs.getBoolean(SHOW_ALL_RESULTS, false);
         boolean showderivs = prefs.getBoolean(SHOW_DERIVATIONS, false);
-        System.out.println("  show all:\t\t" + showall); 
+        System.out.println("  show all:\t\t" + showall);
         System.out.println("  show derivs:\t\t" + showderivs);
-        boolean visualize = prefs.getBoolean(VISUALIZE, false); 
+        boolean visualize = prefs.getBoolean(VISUALIZE, false);
         String visfname = prefs.get("VISFNAME", "");
         System.out.println("  visualize:\t\t" + ((visualize) ? "on" : "off"));
         if (visfname.length() > 0) {
             System.out.println("  vis file name:\t" + visfname);
         }
-        boolean wordpos = prefs.getBoolean(Converter.USE_WORD_POSITIONS_FOR_ATOM_CONVERSION, true); 
+        boolean wordpos = prefs.getBoolean(Converter.USE_WORD_POSITIONS_FOR_ATOM_CONVERSION, true);
         System.out.println("  word pos:\t\t" + ((wordpos) ? "on" : "off"));
-        boolean eisner = prefs.getBoolean(AbstractCompositionRule.EISNER_CONSTRAINTS, true); 
+        boolean eisner = prefs.getBoolean(AbstractCompositionRule.EISNER_CONSTRAINTS, true);
         System.out.println("  Eisner constraints:\t" + ((eisner) ? "on" : "off"));
         System.out.println();
         int ptl = prefs.getInt(Parser.PARSE_TIME_LIMIT, Parser.NO_TIME_LIMIT);
@@ -732,7 +732,7 @@ public class TextCCG {
         int pcpv = prefs.getInt(Parser.PARSE_CELL_PRUNING_VALUE, Parser.NO_PRUNING);
         System.out.println("  parse cell prune val:\t" + ((pcpv == Parser.NO_PRUNING) ? "none" : "" + pcpv));
         boolean plazy = prefs.getBoolean(Parser.PARSE_LAZY_UNPACKING, true);
-        System.out.println("  lazy unpacking:\t" + ((plazy) ? "on" : "off")); 
+        System.out.println("  lazy unpacking:\t" + ((plazy) ? "on" : "off"));
         System.out.println();
         int tl = prefs.getInt(opennlp.ccg.realize.Chart.TIME_LIMIT, opennlp.ccg.realize.Chart.NO_TIME_LIMIT);
         System.out.println("  time limit:\t\t" + ((tl == opennlp.ccg.realize.Chart.NO_TIME_LIMIT) ? "none" : "" + tl + " ms"));
@@ -746,14 +746,14 @@ public class TextCCG {
         int cpv = prefs.getInt(opennlp.ccg.realize.Chart.CELL_PRUNING_VALUE, opennlp.ccg.realize.Chart.NO_PRUNING);
         System.out.println("  cell pruning value:\t" + ((cpv == opennlp.ccg.realize.Chart.NO_PRUNING) ? "none" : "" + cpv));
         boolean unpacking = prefs.getBoolean(opennlp.ccg.realize.Chart.DO_UNPACKING, true);
-        System.out.println("  unpacking:\t\t" + ((unpacking) ? "on" : "off")); 
+        System.out.println("  unpacking:\t\t" + ((unpacking) ? "on" : "off"));
         boolean showtiming = prefs.getBoolean(SHOW_TIMING, false);
-        System.out.println("  timing:\t\t" + ((showtiming) ? "on" : "off")); 
+        System.out.println("  timing:\t\t" + ((showtiming) ? "on" : "off"));
         boolean showinc = prefs.getBoolean(SHOW_INCOMPLETE_EDGES, false);
-        System.out.println("  show incomplete:\t" + ((showinc) ? "on" : "off")); 
+        System.out.println("  show incomplete:\t" + ((showinc) ? "on" : "off"));
         System.out.println();
         boolean indexing = prefs.getBoolean(EdgeFactory.USE_INDEXING, true);
-	boolean missingIndexCombos = prefs.getBoolean(EdgeFactory.ALLOW_MISSING_INDEX_COMBOS, false);		
+	boolean missingIndexCombos = prefs.getBoolean(EdgeFactory.ALLOW_MISSING_INDEX_COMBOS, false);
         boolean chunks = prefs.getBoolean(EdgeFactory.USE_CHUNKS, true);
         boolean licensing = prefs.getBoolean(EdgeFactory.USE_FEATURE_LICENSING, true);
         boolean combos = prefs.getBoolean(opennlp.ccg.realize.Chart.USE_COMBOS, true);

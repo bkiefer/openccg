@@ -19,11 +19,12 @@
 package opennlp.ccg.hylo;
 
 
-import opennlp.ccg.synsem.LF;
-import opennlp.ccg.util.ListMap;
+import opennlp.ccg.synsem.*;
+import opennlp.ccg.util.*;
 
 import java.util.*;
 
+import gnu.trove.map.hash.*;
 import gnu.trove.list.array.*;
 
 /**

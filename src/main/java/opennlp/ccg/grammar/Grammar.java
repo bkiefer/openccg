@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2003-5 University of Edinburgh (Michael White) and Gunes Erkan
-//
+// 
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-//
+// 
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-//
+// 
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -42,87 +42,86 @@ import java.util.*;
 
 /**
  * A CCG grammar is essentially a lexicon plus a rule group.
- * A grammar may also have sequences of transformations to use in
+ * A grammar may also have sequences of transformations to use in 
  * loading/saving LFs from/to XML.
  *
  * @author  Michael White
  * @author  Gunes Erkan
- * @version $Revision: 1.45 $, $Date: 2010/12/06 02:39:35 $
+ * @version $Revision: 1.45 $, $Date: 2010/12/06 02:39:35 $ 
  */
 public class Grammar {
 
     /** The lexicon. */
     public final Lexicon lexicon;
-
+    
     /** The rule group. */
     public final RuleGroup rules;
 
     /** The type hierarchy. */
     public final Types types;
-
+    
     /** The features to include in supertags. */
     public final Set<String> supertagFeatures = new HashSet<String>();
-
+    
     /** The sequence of transformations to use when loading LFs from XML. */
     public final URL[] fromXmlTransforms;
-
+    
     /** The sequence of transformations to use when saving LFs to XML. */
     public final URL[] toXmlTransforms;
 
     /** Preferences for displaying elements in this grammar. */
     public DisplayPrefs prefs = new DisplayPrefs();
-
+   
     /** For access to the current grammar; should be generalized eventually. */
     public static Grammar theGrammar;
-
+	
     // name of the grammar
     private String grammarName = null;
-
+	
     // parser, for getting parsed words
-    private Parser parser = null;
+    private Parser parser = null; 
 
     // XML factories
-    private SAXParserFactory spf = null;
-    private static SAXTransformerFactory stf = null;
-
+    private SAXParserFactory spf = null; 
+    private static SAXTransformerFactory stf = null; 
+    
     // transformer for loading/saving LFs from/to XML
     private Transformer transformer = null;
-
+    
     // transformations for loading/saving LFs from/to XML
     private Templates[] fromXmlTemplates = null;
     private Templates[] toXmlTemplates = null;
-
+    
     // transformer for saving strings to APML
     private Transformer apmlTransformer = null;
-
+    
     /** The pitch accents recognized as underscored suffixes for translation to APML. */
-    public static final String[] pitchAccents = {
+    public static final String[] pitchAccents = { 
         "H*", "L*", "L+H*", "L*+H", "H*+L", "H+L*"
     };
 
     // set of pitch accents
-    private static Set<String> pitchAccentsSet = null;
-
+    private static Set<String> pitchAccentsSet = null;    
+    
     /** The boundary tones recognized as separate tokens for translation to APML. */
-    public static final String[] boundaryTones = {
+    public static final String[] boundaryTones = { 
         "L", "H", "LL%", "HH%", "LH%", "HL%"
     };
-
+    
     // set of boundary tones
-    private static Set<String> boundaryTonesSet = null;
+    private static Set<String> boundaryTonesSet = null;    
 
-
-
+    
     /** Loads a grammar from the given filename. */
     public Grammar(String filename) throws IOException {
         this(new File(filename).toURI().toURL());
     }
-
+    
     /** Loads a grammar from the given URL. */
 	public Grammar(URL url) throws IOException {
     	this(url, false);
     }
-
+    
     /** Loads a grammar from the given URL, with the given flag for whether to ignore rule combos. */
     @SuppressWarnings("unchecked")
 	public Grammar(URL url, boolean ignoreCombos) throws IOException {
@@ -137,7 +136,7 @@ public class Grammar {
         }
         Element root = doc.getRootElement();	// root corresponds to <grammar>
 		    grammarName = root.getAttributeValue("name");
-
+		
         Element supertagsElt = root.getChild("supertags");
         if (supertagsElt != null) {
             String feats = supertagsElt.getAttributeValue("feats");
@@ -150,9 +149,9 @@ public class Grammar {
         }
         if (supertagFeatures.isEmpty()) {
             // default is "form" and "lex"
-            supertagFeatures.add("form"); supertagFeatures.add("lex");
+            supertagFeatures.add("form"); supertagFeatures.add("lex"); 
         }
-
+        
         Tokenizer tokenizer = null;
         Element tokenizerElt = root.getChild("tokenizer");
         if (tokenizerElt != null) {
@@ -173,7 +172,7 @@ public class Grammar {
                 }
             }
         }
-
+        
         Element typesElt = root.getChild("types");
         URL typesUrl;
         if (typesElt != null) {
@@ -182,7 +181,7 @@ public class Grammar {
         else typesUrl = null;
         Element lexiconElt = root.getChild("lexicon");
         boolean openlex = "true".equals(lexiconElt.getAttributeValue("openlex"));
-        URL lexiconUrl = new URL(url, lexiconElt.getAttributeValue("file"));
+        URL lexiconUrl = new URL(url, lexiconElt.getAttributeValue("file")); 
         Element morphElt = root.getChild("morphology");
         URL morphUrl = new URL(url, morphElt.getAttributeValue("file"));
         Element rulesElt = root.getChild("rules");
@@ -209,15 +208,16 @@ public class Grammar {
         } else {
             toXmlTransforms = new URL[0];
         }
+        
         // load type hierarchy, lexicon and rules
         if (typesUrl != null) types = new Types(typesUrl, this);
         else types = new Types(this);
         if (tokenizer != null) lexicon = new Lexicon(this, tokenizer);
         else lexicon = new Lexicon(this);
         lexicon.openlex = openlex;
-        lexicon.init(lexiconUrl, morphUrl);
+        lexicon.init(lexiconUrl, morphUrl); 
         rules = new RuleGroup(rulesUrl, this);
-
+        
         // add observed supertag-rule combos for filtering, if any, unless ignoring combos
         if (!ignoreCombos) {
 	        String combosfile = rulesElt.getAttributeValue("combosfile");
@@ -233,9 +233,9 @@ public class Grammar {
         }
     }
 
-
+    
     /**
-     * Returns a file url string relative to the user's current directory
+     * Returns a file url string relative to the user's current directory 
      * for the given filename.
      */
     public static String convertToFileUrl(String filename) {
@@ -247,13 +247,13 @@ public class Grammar {
         }
         // return "file:"+System.getProperty("user.dir")+"/"+filename;
     }
-
-
+    
+    
     // initializes factories and transformers
     private void initializeTransformers() throws TransformerConfigurationException {
         // init factories
         if (spf == null) {
-            spf = SAXParserFactory.newInstance();
+            spf = SAXParserFactory.newInstance(); 
             spf.setNamespaceAware(true);
         }
         if (stf == null) {
@@ -263,27 +263,27 @@ public class Grammar {
             } catch (IllegalArgumentException exc) {} // ignore
         }
         // set up transformer with indenting
-        // nb: with some JVMs (eg JDK 1.4.1 on Windows),
-        //     the transformer needs to be reinitialized each time, in order to
-        //     run multiple :r FN commands in tccg
+        // nb: with some JVMs (eg JDK 1.4.1 on Windows), 
+        //     the transformer needs to be reinitialized each time, in order to 
+        //     run multiple :r FN commands in tccg 
         if (transformer == null) {
             transformer = stf.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            try { // also try setting indent as a xalan property
+            try { // also try setting indent as a xalan property 
                 transformer.setOutputProperty("{http://xml.apache.org/xalan}indent-amount", "2");
             } catch (IllegalArgumentException exc) {} // ignore
         }
-        // set up apml transformer
+        // set up apml transformer 
         if (apmlTransformer == null) {
             InputStream toApmlStr = ClassLoader.getSystemResourceAsStream("opennlp/ccg/grammar/to-apml.xsl");
             apmlTransformer = stf.newTransformer(new StreamSource(toApmlStr));
-            // nb: DOCTYPE SYSTEM also specified in to-apml.xsl; including
+            // nb: DOCTYPE SYSTEM also specified in to-apml.xsl; including  
             //     redundant specification here to workaround omission of DOCTYPE with Linux 1.5 JVM
             apmlTransformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, "apml.dtd");
         }
     }
-
-
+    
+    
     // does setup for LF from XML transformation, and returns a SAXSource for the given input stream
     // nb: need a new filter chain one for each use (perhaps due to an underyling bug)
     private SAXSource fromXmlSetup(InputStream istream) throws IOException {
@@ -322,9 +322,9 @@ public class Grammar {
             throw (IOException) new IOException().initCause(tce);
         }
     }
-
+    
     /**
-     * Loads a document from the XML in the given input stream,
+     * Loads a document from the XML in the given input stream, 
      * applying the configured from-XML transformations.
      */
     public synchronized Document loadFromXml(InputStream istream) throws IOException {
@@ -336,13 +336,13 @@ public class Grammar {
             transformer.transform(source, result);
             // return result doc
             return result.getDocument();
-        } catch (TransformerException exc) {
+        } catch (TransformerException exc) { 
             throw (IOException) new IOException().initCause(exc);
         }
     }
-
+    
     /**
-     * Loads a document from the XML file with the given filename,
+     * Loads a document from the XML file with the given filename, 
      * applying the configured from-XML transformations.
      */
     public synchronized Document loadFromXml(String filename) throws IOException {
@@ -351,7 +351,7 @@ public class Grammar {
         bis.close();
         return retval;
     }
-
+    
 
     // does setup for LF to XML transformation, and returns a SAXSource for the given source
     // nb: need a new filter chain one for each use (perhaps due to an underyling bug)
@@ -395,26 +395,26 @@ public class Grammar {
     }
 
     /**
-     * Saves the given LF with the given target string to an XML file
+     * Saves the given LF with the given target string to an XML file 
      * with the given filename, applying the configured to-XML
      * transformations.
      */
-    public synchronized void saveToXml(LF lf, String target, String filename) throws IOException {
+    public synchronized void saveToXml(LF lf, String target, String filename) throws IOException { 
         // ensure dirs exist for filename
         File file = new File(filename);
         File parent = file.getParentFile();
         if (parent != null && !parent.exists()) { parent.mkdirs(); }
-        FileOutputStream out = new FileOutputStream(file);
+        FileOutputStream out = new FileOutputStream(file); 
         saveToXml(lf, target, out);
         out.close();
     }
 
     /**
-     * Saves the given LF with the given target string as XML to the
+     * Saves the given LF with the given target string as XML to the 
      * given output stream, applying the configured to-XML
      * transformations.
      */
-    public synchronized void saveToXml(LF lf, String target, OutputStream out) throws IOException {
+    public synchronized void saveToXml(LF lf, String target, OutputStream out) throws IOException { 
         // make doc with XML for LF and target
         Document doc = new Document();
         Element root = new Element("xml");
@@ -430,14 +430,14 @@ public class Grammar {
             Source source = toXmlSetup(new JDOMSource(doc));
             // do transformation
             transformer.transform(source, new StreamResult(new OutputStreamWriter(out)));
-        } catch (TransformerException exc) {
+        } catch (TransformerException exc) { 
             throw (IOException) new IOException().initCause(exc);
         }
     }
 
-
+    
     /**
-     * Transforms an LF by applying the configured to-XML and from-XML transformations,
+     * Transforms an LF by applying the configured to-XML and from-XML transformations, 
      * then loading the LF from the resulting doc.
      */
     public synchronized LF transformLF(LF lf) throws IOException {
@@ -447,9 +447,9 @@ public class Grammar {
         Document doc = loadFromXml(in);
         return Realizer.getLfFromDoc(doc);
     }
-
+    
     /**
-     * Loads an LF by applying the configured from-XML transformations,
+     * Loads an LF by applying the configured from-XML transformations, 
      * then loading the LF from the resulting doc.
      */
     public synchronized LF loadLF(Document doc) throws IOException {
@@ -459,8 +459,8 @@ public class Grammar {
         Document doc2 = loadFromXml(in);
         return Realizer.getLfFromDoc(doc2);
     }
-
-
+    
+    
     /**
      * Convenience method to serialize XML.
      */
@@ -472,16 +472,16 @@ public class Grammar {
             XMLOutputter outputter = new XMLOutputter();
             outputter.setFormat(Format.getPrettyFormat());
             outputter.output(result.getDocument(), new OutputStreamWriter(out)); // end of A.I. suggestion
-        } catch (TransformerException exc) {
+        } catch (TransformerException exc) { 
             throw (IOException) new IOException().initCause(exc);
         }
     }
 
-
-    /**
+    
+    /** 
      * Makes an element for the given LF, applying the configured to-XML transformations.
      */
-    public synchronized Element makeLfElt(LF lf) throws IOException {
+    public synchronized Element makeLfElt(LF lf) throws IOException { 
         // make doc with LF in it
         Document lfDoc = new Document();
         lfDoc.setRootElement(HyloHelper.toXml(lf));
@@ -493,14 +493,14 @@ public class Grammar {
             JDOMResult result = new JDOMResult();
             transformer.transform(source, result);
             lfDoc = result.getDocument();
-        } catch (TransformerException exc) {
+        } catch (TransformerException exc) { 
             throw (IOException) new IOException().initCause(exc);
         }
         return lfDoc.detachRootElement();
     }
 
-
-    /**
+    
+    /** 
      * Returns whether the given string is a recognized pitch accent.
      */
     public static boolean isPitchAccent(String s) {
@@ -512,9 +512,9 @@ public class Grammar {
         }
         return pitchAccentsSet.contains(s);
     }
-
-    /**
-     * Returns whether the given string is a recognized boundary tone.
+    
+    /** 
+     * Returns whether the given string is a recognized boundary tone. 
      */
     public static boolean isBoundaryTone(String s) {
         if (boundaryTonesSet == null) {
@@ -525,10 +525,10 @@ public class Grammar {
         }
         return boundaryTonesSet.contains(s);
     }
-
-
+    
+    
     /**
-     * Saves the given sign's words, pitch accents and boundary tones
+     * Saves the given sign's words, pitch accents and boundary tones 
      * to an APML file with the given filename.
      */
     public synchronized void saveToApml(Sign sign, String filename) throws IOException {
@@ -541,15 +541,15 @@ public class Grammar {
         saveToApml(sign, fw);
         fw.close();
     }
-
+    
     /**
-     * Saves the given sign's words, pitch accents and boundary tones
+     * Saves the given sign's words, pitch accents and boundary tones 
      * as APML to the given writer.
-     * The orthography is first converted to XML using Sign.getWordsInXml,
+     * The orthography is first converted to XML using Sign.getWordsInXml, 
      * and then converted to APML using opennlp/ccg/grammar/to-apml.xsl.
      * The string is assumed to be a single performative.
      */
-    public synchronized void saveToApml(Sign sign, Writer writer) throws IOException {
+    public synchronized void saveToApml(Sign sign, Writer writer) throws IOException { 
         // convert words
         Document doc = sign.getWordsInXml();
         // write transformed doc to file
@@ -559,14 +559,14 @@ public class Grammar {
             Source source = new JDOMSource(doc);
             // do transformation
             apmlTransformer.transform(source, new StreamResult(writer));
-        } catch (TransformerException exc) {
+        } catch (TransformerException exc) { 
             throw (IOException) new IOException().initCause(exc);
         }
     }
-
-
-    /**
-     * Returns the words for the given string, as determined by its
+    
+    
+    /** 
+     * Returns the words for the given string, as determined by its 
      * first parse, or an empty list, if it cannot be parsed.
      */
     // NB: Could try to extend this to find the parse with the intended LF.
@@ -593,11 +593,11 @@ public class Grammar {
 	public final String getName() {
 		return grammarName;
 	}
-
-
+	
+	
     /**
      * Writes the list of words to a basic morph file.
-     * @throws IOException
+     * @throws IOException 
      */
     public void toMorphXml(List<Word> words, String filename) throws IOException {
     	Collections.sort(words);
@@ -617,12 +617,12 @@ public class Grammar {
     	out.println("</morph>");
     	out.flush(); out.close();
     }
-
+	
     /**
      * Writes the list of categories and associated POS tags to a basic lexicon file.
-     * Note that the LFs are expected to have a [*DEFAULT*] proposition in the
+     * Note that the LFs are expected to have a [*DEFAULT*] proposition in the 
      * desired location for predicate insertion.
-     * @throws IOException
+     * @throws IOException 
      */
     public void toLexiconXml(List<Category> cats, List<String> POSs, String filename) throws IOException {
     	// create map from supertags with unique suffixes to cat/pos pairs
@@ -660,3 +660,4 @@ public class Grammar {
     	out.flush(); out.close();
     }
 }
+

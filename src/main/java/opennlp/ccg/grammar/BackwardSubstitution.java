@@ -29,7 +29,7 @@ import org.jdom2.Element;
  * Backward substitution, e.g. Y\Z X\Y\Z => X\Z
  *
  * @author Jason Baldridge
- * @version $Revision: 1.2 $, $Date: 2005/10/18 22:20:15 $
+ * @version $Revision: 1.3 $, $Date: 2009/07/17 04:23:30 $
  */
 public class BackwardSubstitution extends AbstractSubstitutionRule {
 

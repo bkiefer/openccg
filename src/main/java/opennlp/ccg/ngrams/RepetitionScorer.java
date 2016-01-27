@@ -175,3 +175,4 @@ public class RepetitionScorer implements SignScorer
         return 0;
     }
 }
+

@@ -48,3 +48,7 @@ lib/openccg.jar
 output/
 src/ccg2xml/ccg2xml.py
 src/srilmbridge/*.h
+/target/
+.settings
+.classpath
+.profile

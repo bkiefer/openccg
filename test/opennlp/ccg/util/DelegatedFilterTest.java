@@ -9,16 +9,15 @@ public class DelegatedFilterTest {
 
 	Filter<Integer> lengthFilter;
 	DelegatedFilter<String, Integer> stringFilter;
-	
+
 	@Before
 	public void setUp() throws Exception {
 		lengthFilter = new Filter<Integer>() {
-			@Override
 			public boolean allows(Integer i) {
 				return i <= 5;
 			}
 		};
-		
+
 		stringFilter = new DelegatedFilter<String, Integer>(lengthFilter) {
 			@Override
 			public Integer delegateValueFor(String e) {

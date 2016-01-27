@@ -1,16 +1,16 @@
 //////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2012 Scott Martin
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -38,12 +38,12 @@ import opennlp.ccg.util.VisitedFilter;
 /**
  * An alignment consisting of a pair of phrases and a set of mappings between them.
  * <p>
- * This class is a flat representation of the mappings between indices in its 
+ * This class is a flat representation of the mappings between indices in its
  * {@linkplain #getA() A-position} phrase and its {@linkplain #getB() B-position} phrase in that it is
  * simply a set of mappings. More granularity is available by calling
  * {@link #getTargets(Integer, PhrasePosition)}, which returns all the indices a certain index is mapped to
  * from a specified position.
- * Alignments also allow their indices to be accessed when the phrase position is not necessarily known, 
+ * Alignments also allow their indices to be accessed when the phrase position is not necessarily known,
  * via {@link #get(PhrasePosition)}, {@link #getIndices(PhrasePosition)}, and {@link #asMap(PhrasePosition)}.
  * <p>
  * A detached view of this alignment as a map whose keys are the indices in a
@@ -51,11 +51,11 @@ import opennlp.ccg.util.VisitedFilter;
  * {@link #asMap(PhrasePosition)}. If only the set of indices mapped to by a certain index is required,
  * {@link #getTargets(Integer, PhrasePosition)} provides similar functionality. The static method
  * {@link #fromMap(Phrase, Phrase, Map)} allows an alignment to be reconstructed from a map of indices to
- * sets of indices. 
+ * sets of indices.
  * <p>
  * A version of this alignment with the phrase positions reversed and all the mappings
  * {@linkplain Mapping#reverse() reversed} can be obtained by calling {@link #reverse()}.
- * 
+ *
  * @author <a href="http://www.ling.ohio-state.edu/~scott/">Scott Martin</a>
  * @see PhrasePosition
  * @see Phrase
@@ -65,85 +65,85 @@ public class Alignment extends AbstractSet<Mapping> implements Comparable<Alignm
 
 	final Phrase a, b;
 	final Set<Mapping> mappings;
-	
+
 	/**
 	 * Creates a new alignment with the specified phrases and mappings between them. The specified set of
 	 * mappings is copied in a way that preserves whatever ordering is present in the original set,
 	 * via {@link LinkedHashSet}.
-	 * 
+	 *
 	 * @param a The phrase to use for {@linkplain PhrasePosition#A the &quot;A&quot; position}.
 	 * @param b The phrase to use for {@linkplain PhrasePosition#B the &quot;B&quot; position}.
 	 * @param mappings The mappings between <tt>a</tt> and <tt>b</tt>, where the
 	 * {@linkplain Mapping#getA() first index} is understood to belong to <tt>a</tt> and the
 	 * {@linkplain Mapping#getB() second index} is understood to belong to <tt>b</tt>.
-	 * 
+	 *
 	 * @throws IllegalArgumentException If either phrase is null, or if phrases <tt>a</tt> and <tt>b</tt> do not
 	 * have matching {@linkplain Phrase#getNumber() numbers}, if <tt>mappings</tt> is <tt>null</tt>,
-	 * or if any of the mappings have a non-null phrase number that is not equal to the phrases' numbers. 
+	 * or if any of the mappings have a non-null phrase number that is not equal to the phrases' numbers.
 	 * @throws IndexOutOfBoundsException If any of the mappings contains an index that does not
 	 * exist in the phrase in the corresponding position.
-	 * 
+	 *
 	 * @see LinkedHashSet
 	 */
 	public Alignment(Phrase a, Phrase b, Collection<? extends Mapping> mappings) {
 		checkPhrases(a, b);
-		
+
 		if(mappings == null) {
 			throw new IllegalArgumentException("mappings is null");
 		}
-		
+
 		// have to set these first or checkMapping() throws exception
 		this.a = a;
 		this.b = b;
-		
+
 		for(Mapping m : mappings) {
 			checkMapping(m);
 		}
-		
-		
+
+
 		this.mappings = new LinkedHashSet<Mapping>(mappings);
 	}
-	
+
 	/**
 	 * Creates a new alignment based on the specified phrases and map view of their mappings.
 	 * @param a The {@linkplain PhrasePosition#A A-position} phrase.
 	 * @param b The {@linkplain PhrasePosition#B B-position} phrase.
-	 * @param map A map whose keys are the A-position indices and whose values are the B-position indices 
+	 * @param map A map whose keys are the A-position indices and whose values are the B-position indices
 	 * that the corresponding key is mapped to.
 	 * @return A new alignment with mappings created based on the specified <tt>map</tt>.
-	 * 
+	 *
 	 * @see #asMap()
 	 */
 	public static Alignment fromMap(Phrase a, Phrase b, Map<Integer, Set<Integer>> map) {
 		@SuppressWarnings("unchecked")
 		Set<Mapping> ms = map.isEmpty() ? Collections.EMPTY_SET : new LinkedHashSet<Mapping>();
-		
+
 		for(Integer k : map.keySet()) {
 			for(Integer v : map.get(k)) {
 				ms.add(new Mapping(a.getNumber(), k, v));
 			}
 		}
-		
+
 		return new Alignment(a, b, ms);
 	}
-	
+
 	/**
 	 * Creates an alignment based on this one except that the phrases have
 	 * switched positions and all of the mappings are reversed.
-	 * 
+	 *
 	 * @return A new alignment with the phrases swapped and all the mappings'
 	 * indices swapped.
-	 * 
+	 *
 	 * @see Mapping#reverse()
 	 */
 	public Alignment reverse() {
 		@SuppressWarnings("unchecked")
 		Alignment r = new Alignment(getB(), getA(), Collections.EMPTY_SET);
-		
+
 		for(Mapping m : mappings) {
 			r.add(m.reverse());
 		}
-		
+
 		return r;
 	}
 
@@ -155,7 +155,7 @@ public class Alignment extends AbstractSet<Mapping> implements Comparable<Alignm
 	public Integer getNumber() {
 		return a.number;
 	}
-	
+
 	/**
 	 * Gets the phrase in {@linkplain PhrasePosition#A A-position}.
 	 */
@@ -178,7 +178,7 @@ public class Alignment extends AbstractSet<Mapping> implements Comparable<Alignm
 	public Phrase get(PhrasePosition pos) {
 		return (pos == A) ? a : b;
 	}
-	
+
 	/**
 	 * Adds a new mapping to this alignment.
 	 * @throws IndexOutOfBoundsException If either of the indices in <tt>m</tt> are out of bounds for the
@@ -205,14 +205,13 @@ public class Alignment extends AbstractSet<Mapping> implements Comparable<Alignm
 	public int size() {
 		return mappings.size();
 	}
-	
+
 	/**
 	 * Compares this alignment to another by comparing their {@linkplain #getNumber() numbers}.
 	 * @param o The alignment to compare to.
 	 * @return The value of <tt>getNumber().compareTo(o.getNumber())</tt>.
 	 * @see Integer#compareTo(Integer)
 	 */
-	@Override
 	public int compareTo(Alignment o) {
 		return getNumber().compareTo(o.getNumber());
 	}
@@ -225,9 +224,9 @@ public class Alignment extends AbstractSet<Mapping> implements Comparable<Alignm
 	public boolean equals(Object o) {
 		if(o instanceof Alignment) {
 			Alignment al = (Alignment)o;
-			return super.equals(o) && a.equals(al.a) && b.equals(al.b); 
+			return super.equals(o) && a.equals(al.a) && b.equals(al.b);
 		}
-		
+
 		return false;
 	}
 
@@ -253,23 +252,23 @@ public class Alignment extends AbstractSet<Mapping> implements Comparable<Alignm
 		sb.append(b.toString());
 		sb.append(", mappings: ");
 		sb.append(super.toString());
-		
+
 		return sb.toString();
 	}
-	
+
 	// Views and conveniences
-	
+
 	/**
 	 * Gets the indices mapped to from the specified <tt>source</tt>, assuming that the source is in the
 	 * {@linkplain PhrasePosition#A A-position}.
-	 * 
+	 *
 	 * @return the value of <tt>getTargets(source, PhrasePosition.A)</tt>
 	 * @see #getTargets(Integer, PhrasePosition)
 	 */
 	public Set<Integer> getTargets(Integer source) {
 		return getTargets(source, A);
 	}
-	
+
 	/**
 	 * Gets the indices mapped to by a specified index starting from the specified position. For example, if
 	 * an alignment contains the following mappings:
@@ -285,21 +284,21 @@ public class Alignment extends AbstractSet<Mapping> implements Comparable<Alignm
 	 * {@link #asMap(PhrasePosition) asMap}<tt>(sourcePosition).get(source)</tt>, with the exception that if
 	 * no mappings have <tt>source</tt> in the source position, the empty set is returned rather than
 	 * <tt>null</tt>.
-	 * 
+	 *
 	 * @param source The index to look for targets of.
 	 * @param sourcePosition The phrase position to assume the <tt>source</tt> index belongs to.
-	 *  
+	 *
 	 * @return A set of indices in the {@linkplain PhrasePosition#opposite() opposite position} that the
 	 * specified <tt>source</tt> index maps to (the same as <tt>asMap(sourcePosition).get(source)</tt>),
 	 * or the empty set if no such indices are present.
-	 * 
+	 *
 	 * @see #add(Mapping)
 	 * @see #asMap(PhrasePosition)
 	 */
 	public Set<Integer> getTargets(Integer source, PhrasePosition sourcePosition) {
 		return new LinkedHashSet<Integer>(new ValueView(source, sourcePosition));
 	}
-	
+
 	/**
 	 * Gets the indices in a specified phrase position. Specifically, returns a set containing every
 	 * integer <tt>i</tt> such that there exists a mapping in this alignment that returns <tt>i</tt>
@@ -313,14 +312,14 @@ public class Alignment extends AbstractSet<Mapping> implements Comparable<Alignm
 	}
 
 	/**
-	 * Gets a map view of this alignment from the {@linkplain Alignments#DEFAULT_PHRASE_POSITION 
-	 * default phrase position}. 
+	 * Gets a map view of this alignment from the {@linkplain Alignments#DEFAULT_PHRASE_POSITION
+	 * default phrase position}.
 	 * @see #asMap(PhrasePosition)
 	 */
 	public Map<Integer, Set<Integer>> asMap() {
 		return asMap(Alignments.DEFAULT_PHRASE_POSITION);
 	}
-	
+
 	/**
 	 * Gets a map view of this alignment from the specified key position. The returned map's keys are drawn
 	 * from the mappings by accessing the specified key position, while the values are aggregated together
@@ -357,17 +356,17 @@ public class Alignment extends AbstractSet<Mapping> implements Comparable<Alignm
 	 * the returned map is not specified if mappings are added are removed to this alignment after a call to
 	 * <code>asMap()</code>.
 	 * <p>
-	 * The returned map is detached from (not backed by) this set of mappings, so keys can be removed from and 
+	 * The returned map is detached from (not backed by) this set of mappings, so keys can be removed from and
 	 * added to it without any effect on this alignment. Similarly, the sets of indices that are the values
 	 * of its entry set can be modified without affecting this alignment. The
 	 * {@link #fromMap(Phrase, Phrase, Map)} provides the ability to create an alignment based on a map of
 	 * A indices to sets of B indices.
-	 * 
-	 * @param keyPosition The phrase position that the resulting maps keys should be taken from. 
+	 *
+	 * @param keyPosition The phrase position that the resulting maps keys should be taken from.
 	 * @return A map whose {@linkplain Map#keySet() keys} are from the phrase in the specified position, and
 	 * whose values are sets of indices from the phrase in the {@linkplain PhrasePosition#opposite() opposite}
 	 * position.
-	 * 
+	 *
 	 * @see #fromMap(Phrase, Phrase, Map)
 	 * @see LinkedHashMap
 	 * @see LinkedHashSet
@@ -375,50 +374,50 @@ public class Alignment extends AbstractSet<Mapping> implements Comparable<Alignm
 	public Map<Integer, Set<Integer>> asMap(PhrasePosition keyPosition) {
 		return new LinkedHashMap<Integer, Set<Integer>>(new MapView(keyPosition));
 	}
-	
+
 	void checkPhrases(Phrase ap, Phrase bp) {
 		if(ap == null) {
 			throw new IllegalArgumentException(A.name() + " phrase is null");
 		}
-		
+
 		if(bp == null) {
 			throw new IllegalArgumentException(B.name() + " phrase is null");
 		}
-		
+
 		if(!ap.number.equals(bp.number)) {
 			throw new IllegalArgumentException("phrases have different numbers");
 		}
 	}
-	
+
 	void checkMapping(Mapping m) {
 		if(m == null) {
 			throw new IllegalArgumentException("attempt to add null mapping");
 		}
-		
+
 		if(m.phraseNumber != null && !m.phraseNumber.equals(a.number)) {
 			throw new IllegalArgumentException("mapping's phrase number does not match: expected "
 					+ a.number + ", but was " + m.phraseNumber);
 		}
-		
+
 		for(PhrasePosition pos : PhrasePosition.values()) {
 			checkIndex(m.get(pos), pos);
 		}
 	}
-	
+
 	void checkIndex(Integer index, PhrasePosition intendedPosition) {
 		if(index == null) {
 			throw new IllegalArgumentException("attempt to add null index in position "
-				+ intendedPosition.name()); 
+				+ intendedPosition.name());
 		}
-		
+
 		if(index < -1 || get(intendedPosition).size() <= index) {
 			throw new IndexOutOfBoundsException(intendedPosition.name() + " index out of bounds: " + index);
 		}
 	}
-	
+
 	class MapView extends AbstractMap<Integer, Set<Integer>> {
 		PhrasePosition keyPosition;
-		
+
 		MapView(PhrasePosition keyPosition) {
 			this.keyPosition = keyPosition;
 		}
@@ -427,7 +426,7 @@ public class Alignment extends AbstractSet<Mapping> implements Comparable<Alignm
 		public Set<Entry<Integer, Set<Integer>>> entrySet() {
 			return new AbstractSet<Entry<Integer, Set<Integer>>>() {
 				private Set<Integer> keys = new KeyView(keyPosition);
-				
+
 				@Override
 				public int size() {
 					return keys.size();
@@ -437,22 +436,19 @@ public class Alignment extends AbstractSet<Mapping> implements Comparable<Alignm
 				public Iterator<Entry<Integer, Set<Integer>>> iterator() {
 					return new Iterator<Entry<Integer,Set<Integer>>>() {
 						private Iterator<Integer> i = keys.iterator();
-						
-						@Override
+
 						public boolean hasNext() {
 							return i.hasNext();
 						}
 
-						@Override
 						public Entry<Integer, Set<Integer>> next() {
 							final Integer key = i.next();
-							
+
 							// copy values because HashMap's constructor doesn't
 							return new SimpleImmutableEntry<Integer, Set<Integer>>(
 									key, new LinkedHashSet<Integer>(new ValueView(key, keyPosition)));
 						}
-						
-						@Override
+
 						public void remove() {
 							i.remove(); // throws UnsupportedOperationException
 						}
@@ -461,25 +457,25 @@ public class Alignment extends AbstractSet<Mapping> implements Comparable<Alignm
 			};
 		}
 	}
-	
+
 	abstract class IndexView extends AbstractSet<Integer> {
 
 		PhrasePosition indexPosition;
 		Filter<Mapping> indexFilter;
-	
+
 		private Set<Mapping> indices;
-		
+
 		IndexView(PhrasePosition indexPosition, Filter<Mapping> indexFilter) {
 			this.indexPosition = indexPosition;
 			this.indexFilter = indexFilter;
 		}
-		
+
 		Set<Mapping> indices() {
 			return (indices == null)
 					? (indices = new FilteredSet<Mapping>(Alignment.this.mappings, indexFilter))
 					: indices;
 		}
-		
+
 		@Override
 		public int size() {
 			return indices().size();
@@ -490,24 +486,21 @@ public class Alignment extends AbstractSet<Mapping> implements Comparable<Alignm
 			return new Iterator<Integer>() {
 				private Iterator<Mapping> i = indices().iterator();
 
-				@Override
 				public boolean hasNext() {
 					return i.hasNext();
 				}
 
-				@Override
 				public Integer next() {
 					return i.next().get(indexPosition);
 				}
-				
-				@Override
+
 				public void remove() {
 					throw new UnsupportedOperationException(); // just in case
 				}
 			};
-		}		
+		}
 	}
-	
+
 	class KeyView extends IndexView {
 		KeyView(final PhrasePosition keyPosition) {
 			super(keyPosition, new DelegatedFilter<Mapping, Integer>(new VisitedFilter<Integer>()) {
@@ -518,15 +511,14 @@ public class Alignment extends AbstractSet<Mapping> implements Comparable<Alignm
 			});
 		}
 	}
-	
+
 	class ValueView extends IndexView {
 		ValueView(final Integer key, final PhrasePosition keyPosition) {
 			super(keyPosition.opposite(), new Filter<Mapping>() {
-				@Override
 				public boolean allows(Mapping m) {
 					return key.equals(m.get(keyPosition));
 				}
 			});
-		}		
+		}
 	}
 }

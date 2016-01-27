@@ -18,9 +18,9 @@ public class FilteredMapTest {
 	Map<Integer,String> map;
 	FilteredMap<Integer, String> filteredMap;
 	Filter<Integer> keyFilter;
-	
+
 	Integer target = 37;
-	
+
 	@Before
 	public void setUp() throws Exception {
 		map = new HashMap<Integer, String>();
@@ -28,15 +28,14 @@ public class FilteredMapTest {
 		map.put(31, "thirty-one");
 		map.put(37, "thirty-seven");
 		map.put(43, "forty-three");
-		
+
 		keyFilter = new Filter<Integer>() {
-			
-			@Override
+
 			public boolean allows(Integer e) {
 				return target >= e;
 			}
 		};
-		
+
 		filteredMap = new FilteredMap<Integer, String>(map, keyFilter);
 	}
 
@@ -50,7 +49,7 @@ public class FilteredMapTest {
 			// do nothing
 		}
 	}
-	
+
 	@Test
 	public void testGetOriginalMap() {
 		assertEquals(map, filteredMap.getOriginalMap());
@@ -74,10 +73,10 @@ public class FilteredMapTest {
 	public void testPut() {
 		assertNull(filteredMap.put(47, "blah"));
 		assertNull(filteredMap.put(29, "twenty-nine"));
-		
+
 		assertFalse(filteredMap.containsKey(47));
 		assertTrue(filteredMap.containsKey(29));
-		
+
 		assertEquals("twenty-nine", filteredMap.put(29, "blah"));
 		assertEquals("blah", filteredMap.get(29));
 	}
@@ -107,7 +106,7 @@ public class FilteredMapTest {
 	public void testValues() {
 		assertTrue(filteredMap.values().contains("seventeen"));
 		assertFalse(filteredMap.values().contains("forty-three"));
-		
+
 		filteredMap.remove(17);
 		assertFalse(filteredMap.values().contains("seventeen"));
 	}

@@ -115,107 +115,105 @@ public abstract class AbstractRule implements Rule, Serializable {
             throw new RuntimeException("Inputs must have length " + arity());
         }
 
-		if (name().contains("disclevelcomposition") &&
-				!disclevelcompositionRules) { return ; }
+        if (name().contains("disclevelcomposition") &&
+            !disclevelcompositionRules) { return ; }
 
-		if (name().contains("correction") &&
-				!disfluencycorrectionRules) { return ; }
+        if (name().contains("correction") &&
+            !disfluencycorrectionRules) { return ; }
 
 
-		int NbLexicalCorrectionRulesApplied = 0;
-		int NbTypeShiftingRulesApplied = 0;
-		int NbDiscLevelCompositionRulesApplied = 0;
-		int NbDisflCorrectionRulesApplied = 0;
+        int NbLexicalCorrectionRulesApplied = 0;
+        int NbTypeShiftingRulesApplied = 0;
+        int NbDiscLevelCompositionRulesApplied = 0;
+        int NbDisflCorrectionRulesApplied = 0;
 
         Category[] cats = new Category[inputs.length];
 
         for (int i=0; i < cats.length; i++) {
-            cats[i] = inputs[i].getCategory();
+          cats[i] = inputs[i].getCategory();
 
-            NbLexicalCorrectionRulesApplied +=
-				inputs[i].getDerivationHistory().NbLexicalCorrectionRulesApplied;
-			NbTypeShiftingRulesApplied +=
-				inputs[i].getDerivationHistory().NbTypeShiftingRulesApplied;
-			NbDiscLevelCompositionRulesApplied +=
-				inputs[i].getDerivationHistory().NbDiscLevelCompositionRulesApplied;
-			NbDisflCorrectionRulesApplied +=
-				inputs[i].getDerivationHistory().NbDisflCorrectionRulesApplied;
+          NbLexicalCorrectionRulesApplied +=
+              inputs[i].getDerivationHistory().NbLexicalCorrectionRulesApplied;
+          NbTypeShiftingRulesApplied +=
+              inputs[i].getDerivationHistory().NbTypeShiftingRulesApplied;
+          NbDiscLevelCompositionRulesApplied +=
+              inputs[i].getDerivationHistory().NbDiscLevelCompositionRulesApplied;
+          NbDisflCorrectionRulesApplied +=
+              inputs[i].getDerivationHistory().NbDisflCorrectionRulesApplied;
 
-			FeatureStructure feats = cats[i].getTarget().getFeatureStructure();
+          FeatureStructure feats = cats[i].getTarget().getFeatureStructure();
 
-			if (NbLexicalCorrectionRulesApplied < MAX_LEXICAL_CORRECTIONS &&
-					feats != null && feats.hasAttribute("CORRECTED")) {
-				if (asrcorrectionRules) {
-				inputs[i].getDerivationHistory().NbLexicalCorrectionRulesApplied = 1;
-				NbLexicalCorrectionRulesApplied ++;
-				}
-				else { return; }
-			}
+          if (NbLexicalCorrectionRulesApplied < MAX_LEXICAL_CORRECTIONS &&
+              feats != null && feats.hasAttribute("CORRECTED")) {
+            if (asrcorrectionRules) {
+              inputs[i].getDerivationHistory().NbLexicalCorrectionRulesApplied = 1;
+              NbLexicalCorrectionRulesApplied ++;
+            }
+            else { return; }
+          }
 
-			if (NbLexicalCorrectionRulesApplied > MAX_LEXICAL_CORRECTIONS) {
-				return ; }
-		}
+          if (NbLexicalCorrectionRulesApplied > MAX_LEXICAL_CORRECTIONS) {
+            return ; }
+        }
 
         if (disclevelcompositionRules) {
-			if (name().equals("disclevelcomposition")) {
-				if (NbDiscLevelCompositionRulesApplied > MAX_NB_COMPOSITIONS - 1) {
-					return;
-				}
-				NbDiscLevelCompositionRulesApplied++;
-			}
-			else if (name().equals(">") &&
-			 (NbDiscLevelCompositionRulesApplied > MAX_NB_COMPOSITIONS)) {
-				return;
-			}
-		}
+          if (name().equals("disclevelcomposition")) {
+            if (NbDiscLevelCompositionRulesApplied > MAX_NB_COMPOSITIONS - 1) {
+              return;
+            }
+            NbDiscLevelCompositionRulesApplied++;
+          }
+          else if (name().equals(">") &&
+              (NbDiscLevelCompositionRulesApplied > MAX_NB_COMPOSITIONS)) {
+            return;
+          }
+        }
 
 
-		if (disfluencycorrectionRules) {
-			if (name().contains("correction")) {
-				if (NbDisflCorrectionRulesApplied > MAX_DISFLUENCY_CORRECTIONS - 1) {
-					return;
-				}
-				NbDisflCorrectionRulesApplied++;
-			}
-			else if (name().equals(">") &&
-			 (NbDisflCorrectionRulesApplied > MAX_DISFLUENCY_CORRECTIONS)) {
-				return;
-			}
-		}
-
-
+        if (disfluencycorrectionRules) {
+          if (name().contains("correction")) {
+            if (NbDisflCorrectionRulesApplied > MAX_DISFLUENCY_CORRECTIONS - 1) {
+              return;
+            }
+            NbDisflCorrectionRulesApplied++;
+          }
+          else if (name().equals(">") &&
+              (NbDisflCorrectionRulesApplied > MAX_DISFLUENCY_CORRECTIONS)) {
+            return;
+          }
+        }
 
         try {
+          List<Category> resultCats = applyRule(cats);
+          if (resultCats.isEmpty()) return;
 
-            List<Category> resultCats = applyRule(cats);
-            if (resultCats.isEmpty()) return;
-
-            if ((ULTRAVERBOSE_OUTPUT & 1) != 0) {
-              System.out.print(_name + "(");
-              for (Sign s : inputs) {
-                Grammar.theGrammar.prefs.featsToShow = "";
-                System.out.print(" " + s.toString());
-              }
-              System.out.println(" --> ");
+          if ((ULTRAVERBOSE_OUTPUT & 1) != 0) {
+            System.out.print(_name + "(");
+            for (Sign s : inputs) {
+              Grammar.theGrammar.prefs.featsToShow = "";
+              System.out.print(" " + s.toString());
             }
+            System.out.println(" --> ");
+          }
 
-            for (Category catResult : resultCats) {
-                distributeTargetFeatures(catResult);
-                Sign sign = Sign.createDerivedSign(catResult, inputs, this);
+          int i = 0;
+          for (Category catResult : resultCats) {
+            distributeTargetFeatures(catResult);
+            Sign sign = Sign.createDerivedSign(catResult, inputs, this, inputs[i++]);
 
-                if ((ULTRAVERBOSE_OUTPUT & 1) != 0) System.out.println(sign);
+            if ((ULTRAVERBOSE_OUTPUT & 1) != 0) System.out.println(sign);
 
-				sign.getDerivationHistory().NbLexicalCorrectionRulesApplied =
-					NbLexicalCorrectionRulesApplied;
-				sign.getDerivationHistory().NbTypeShiftingRulesApplied =
-					NbTypeShiftingRulesApplied;
-				sign.getDerivationHistory().NbDiscLevelCompositionRulesApplied =
-					NbDiscLevelCompositionRulesApplied;
-				sign.getDerivationHistory().NbDisflCorrectionRulesApplied =
-					NbDisflCorrectionRulesApplied;
+            sign.getDerivationHistory().NbLexicalCorrectionRulesApplied =
+                NbLexicalCorrectionRulesApplied;
+            sign.getDerivationHistory().NbTypeShiftingRulesApplied =
+                NbTypeShiftingRulesApplied;
+            sign.getDerivationHistory().NbDiscLevelCompositionRulesApplied =
+                NbDiscLevelCompositionRulesApplied;
+            sign.getDerivationHistory().NbDisflCorrectionRulesApplied =
+                NbDisflCorrectionRulesApplied;
 
-                results.add(sign);
-            }
+            results.add(sign);
+          }
         } catch (UnifyFailure uf) {
           if ((ULTRAVERBOSE_OUTPUT & 2) != 0)
             System.out.println(uf);

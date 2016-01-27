@@ -1,17 +1,17 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2003-5 Jason Baldridge, Gann Bierner and 
+// Copyright (C) 2003-5 Jason Baldridge, Gann Bierner and
 //                      University of Edinburgh (Michael White)
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -34,19 +34,24 @@ import java.util.*;
 public class DerivationHistory implements Serializable, Comparable<DerivationHistory> {
 
 	private static final long serialVersionUID = 2867339743258182859L;
-	
+
 	private Sign[] _inputs;
     private Sign _output;
     private Rule _rule;
     private boolean _noHistory = false;
     private transient int _complexity = -1;
-    
+
+    public int NbLexicalCorrectionRulesApplied = 0;
+    public int NbTypeShiftingRulesApplied = 0;
+    public int NbDiscLevelCompositionRulesApplied = 0;
+    public int NbDisflCorrectionRulesApplied = 0;
+
     /** Constructor for a sign with no prior history. */
     public DerivationHistory(Sign output) {
         _noHistory = true;
         _output = output;
     }
-    
+
     /** Constructor for a sign created by rule. */
     public DerivationHistory(Sign[] inputs, Sign output, Rule rule) {
         _inputs = new Sign[inputs.length];
@@ -60,22 +65,22 @@ public class DerivationHistory implements Serializable, Comparable<DerivationHis
 
     /** Returns true iff the history is empty. */
     public boolean isEmpty() { return _noHistory; }
-    
+
     /** Returns the inputs (or null if none). */
     public Sign[] getInputs() { return _inputs; }
-    
+
     /** Returns the output. */
     public Sign getOutput() { return _output; }
-    
+
     /** Returns the rule. */
     public Rule getRule() { return _rule; }
-    
-    
+
+
     /** Returns the derivation history in vertical list form. */
     public String toString() {
         return toString(maxRuleLen());
     }
-    
+
     // returns the derivation history given the max rule len, for alignment
     private String toString(int maxRuleLen) {
         StringBuffer sb = new StringBuffer();
@@ -105,7 +110,7 @@ public class DerivationHistory implements Serializable, Comparable<DerivationHis
         // done
         return sb.toString();
     }
-    
+
     // returns the max length of rule names (including parens)
     private int maxRuleLen() {
         if (_noHistory) { return 6; }
@@ -116,9 +121,9 @@ public class DerivationHistory implements Serializable, Comparable<DerivationHis
         max = Math.max(max, _rule.name().length() + 2);
         return max;
     }
-    
-    /** Returns the complexity of the derivation, as the sum of 
-        the number of steps, plus the number of composition or 
+
+    /** Returns the complexity of the derivation, as the sum of
+        the number of steps, plus the number of composition or
         substitution steps, plus the number of crossing steps. */
     public int complexity() {
     	if (_complexity > 0) return _complexity;
@@ -137,7 +142,7 @@ public class DerivationHistory implements Serializable, Comparable<DerivationHis
         _complexity = retval;
         return retval;
     }
-    
+
     /** Returns whether the derivation contains a unary rule cycle. */
     public boolean containsCycle() {
     	if (_noHistory || _inputs.length != 1) return false;
@@ -145,7 +150,7 @@ public class DerivationHistory implements Serializable, Comparable<DerivationHis
     	rulesSeen.add(_rule);
     	return _inputs[0].getDerivationHistory().containsCycle(rulesSeen);
     }
-    
+
     // recursive cycle check
     private boolean containsCycle(List<Rule> rulesSeen) {
     	if (_noHistory || _inputs.length != 1) return false;

@@ -21,7 +21,6 @@ package opennlp.ccg.unify;
 import opennlp.ccg.synsem.LF;
 import opennlp.ccg.hylo.*;
 import opennlp.ccg.grammar.*;
-import gnu.trove.*;
 import gnu.trove.map.hash.*;
 import org.jdom2.*;
 import java.util.*;

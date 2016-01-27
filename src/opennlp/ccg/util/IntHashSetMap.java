@@ -19,9 +19,8 @@
 
 package opennlp.ccg.util;
 
-import gnu.trove.*;
-import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.set.hash.THashSet;
+import gnu.trove.map.hash.*;
+import gnu.trove.set.hash.*;
 
 /**
  * A map from ints to sets which allows objects with the same key to be

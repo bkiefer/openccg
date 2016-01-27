@@ -1,17 +1,17 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2003-11 Jason Baldridge, Gann Bierner and 
+// Copyright (C) 2003-11 Jason Baldridge, Gann Bierner and
 //                       University of Edinburgh (Michael White)
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -22,9 +22,9 @@ package opennlp.ccg.synsem;
 import opennlp.ccg.unify.*;
 import opennlp.ccg.util.DisplayPrefs;
 import opennlp.ccg.grammar.Grammar;
-import org.jdom.*;
+import org.jdom2.*;
 
-import gnu.trove.*;
+import gnu.trove.map.hash.*;
 
 /**
  * The most basic CG category.  This corresponds to a category like 'np[acc]',
@@ -43,7 +43,7 @@ public final class AtomCat extends AbstractCat implements TargetCat {
 
     /** Flag indicating whether this cat is a fragment with completion status true (defaults to false). */
     public boolean fragCompletion = false;
-    
+
     /** Constructor which creates an atomic category with the given type. */
     public AtomCat(String t) {
         this(t, new GFeatStruc());
@@ -51,14 +51,14 @@ public final class AtomCat extends AbstractCat implements TargetCat {
 
     /** Constructor which creates an atomic category with the given type and feature structure. */
     public AtomCat(String t, FeatureStructure fs) {
-        this(t, fs, null); 
+        this(t, fs, null);
     }
 
     /** Constructor which creates an atomic category with the given type, feature structure and LF. */
     public AtomCat(String t, FeatureStructure fs, LF lf) {
         super(lf);
-        type = t; 
-        _featStruc = fs; 
+        type = t;
+        _featStruc = fs;
     }
 
     /** Constructor which retrieves the atomic category from the XML element. */
@@ -67,7 +67,7 @@ public final class AtomCat extends AbstractCat implements TargetCat {
         super(acel);
         // get type
         type = acel.getAttributeValue("type");
-        if (type == null) type = acel.getAttributeValue("t"); 
+        if (type == null) type = acel.getAttributeValue("t");
         // get feature structure
         Element fsEl = acel.getChild("fs");
         if (fsEl != null) {
@@ -97,13 +97,13 @@ public final class AtomCat extends AbstractCat implements TargetCat {
      * Returns this category as the target category.
      */
     public TargetCat getTarget() { return this; }
-    
-    
+
+
     public String getType() {
         return type;
     }
 
-    
+
     public Category copy() {
     	AtomCat retval = new AtomCat(type, _featStruc.copy(), (_lf == null) ? null : (LF) _lf.copy());
     	retval.fragCompletion = fragCompletion;
@@ -116,7 +116,7 @@ public final class AtomCat extends AbstractCat implements TargetCat {
         return retval;
     }
 
-    public void deepMap(ModFcn mf) { 
+    public void deepMap(ModFcn mf) {
         super.deepMap(mf);
         _featStruc.deepMap(mf);
     }
@@ -136,7 +136,7 @@ public final class AtomCat extends AbstractCat implements TargetCat {
     }
 
     /** NB: The LF does not participate in unification. */
-    public Object unify (Object u, Substitution sub) 
+    public Object unify (Object u, Substitution sub)
         throws UnifyFailure {
 
         if (u instanceof AtomCat && type.equals(((AtomCat)u).type)) {
@@ -171,14 +171,14 @@ public final class AtomCat extends AbstractCat implements TargetCat {
         }
         return false;
     }
-    
+
     public String toString() {
         DisplayPrefs prefs = Grammar.theGrammar.prefs;
 
         StringBuffer sb = new StringBuffer();
         sb.append(type);
         if (fragCompletion) sb.append("_c");
-        
+
         if(_featStruc != null && prefs.showFeats)
             sb.append(_featStruc.toString());
 
@@ -202,7 +202,7 @@ public final class AtomCat extends AbstractCat implements TargetCat {
         else _supertag = sb.toString().intern();
 		return _supertag;
     }
-    
+
     public String toTeX() {
         DisplayPrefs prefs = Grammar.theGrammar.prefs;
         StringBuffer sb = new StringBuffer();
@@ -213,26 +213,26 @@ public final class AtomCat extends AbstractCat implements TargetCat {
         return sb.toString();
     }
 
-    
+
     /**
-     * Returns a hash code for this category ignoring the LF, 
+     * Returns a hash code for this category ignoring the LF,
      * using the given map from vars to ints.
      */
     public int hashCodeNoLF(TObjectIntHashMap varMap) {
         int retval = type.hashCode();
-        if (_featStruc != null) { 
+        if (_featStruc != null) {
             if (_featStruc instanceof GFeatStruc) {
                 retval += ((GFeatStruc)_featStruc).hashCode(varMap);
             } else { // nb: would be nice to get rid of this case
-                retval += _featStruc.hashCode(); 
+                retval += _featStruc.hashCode();
             }
         }
         return retval;
     }
 
     /**
-     * Returns whether this category equals the given object  
-     * up to variable names, using the given maps from vars to ints, 
+     * Returns whether this category equals the given object
+     * up to variable names, using the given maps from vars to ints,
      * ignoring the LFs (if any).
      */
     public boolean equalsNoLF(Object obj, TObjectIntHashMap varMap, TObjectIntHashMap varMap2) {
@@ -241,7 +241,7 @@ public final class AtomCat extends AbstractCat implements TargetCat {
         if (_featStruc != null && ac._featStruc == null) { return false; }
         if (_featStruc == null && ac._featStruc != null) { return false; }
         if (!type.equals(ac.type)) { return false; }
-        if (_featStruc != null) { 
+        if (_featStruc != null) {
             if (_featStruc instanceof GFeatStruc) {
                 if (!((GFeatStruc)_featStruc).equals(ac._featStruc, varMap, varMap2)) { return false; }
             } else { // nb: would be nice to get rid of this case

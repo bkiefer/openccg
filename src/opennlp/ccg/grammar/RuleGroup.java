@@ -25,6 +25,9 @@ import opennlp.ccg.unify.*;
 import opennlp.ccg.util.*;
 
 import org.jdom2.*;
+import org.jdom2.output.*;
+import gnu.trove.set.hash.*;
+import gnu.trove.strategy.*;
 
 import java.io.*;
 import java.net.*;
@@ -116,21 +119,19 @@ public class RuleGroup implements Serializable {
 
     // class for seen combos when determined dynamically
     // nb: for space efficiency, allows representative to be retrieved from set
-    private static class SupercatComboSet extends THashSet {
-		private static final long serialVersionUID = 1L;
-		SupercatComboSet() {
-    		super(
-    	        new TObjectHashingStrategy() {
-					private static final long serialVersionUID = 1L;
-					public int computeHashCode(Object o) {
-    					return (o instanceof SupercatRuleCombo) ? ((SupercatRuleCombo)o).supercatHashCode() : 0;
-    	            }
-    	            public boolean equals(Object o1, Object o2) {
-    					return (o1 instanceof SupercatRuleCombo) ? ((SupercatRuleCombo)o1).supercatEquals(o2) : false;
-    	            }
-    	        }
-        	);
-    	}
+    private static class SupercatComboSet extends TCustomHashSet<SupercatRuleCombo> {
+      private static final long serialVersionUID = 1L;
+      SupercatComboSet() {
+        super(new HashingStrategy<SupercatRuleCombo>() {
+          private static final long serialVersionUID = 1L;
+          public int computeHashCode(SupercatRuleCombo o) {
+            return o.supercatHashCode();
+          }
+          public boolean equals(SupercatRuleCombo o1, SupercatRuleCombo o2) {
+            return o1.supercatEquals(o2);
+          }
+        });
+      }
     	// return the seen combo, or null if none
     	SupercatRuleCombo get(SupercatRuleCombo combo) {
     		int index = index(combo);

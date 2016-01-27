@@ -192,7 +192,7 @@ public class Types {
 
         // find max depth
         int maxDepth = 0;
-        int[] depths = depthMap.getValues();
+        int[] depths = depthMap.values();
         for (int i = 0; i < depths.length; i++) {
             maxDepth = Math.max(maxDepth, depths[i]);
         }

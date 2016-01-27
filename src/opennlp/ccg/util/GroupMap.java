@@ -81,7 +81,7 @@ public class GroupMap<KeyType,ValType> implements Serializable {
 
     /** Returns the set of values for the given key (or null). */
     @SuppressWarnings("unchecked")
-	public Set<ValType> get(KeyType key) {
+	  public Set<ValType> get(KeyType key) {
         // get val
         Object val = map.get(key);
         // return if null or already a set
@@ -105,8 +105,8 @@ public class GroupMap<KeyType,ValType> implements Serializable {
     public int size() { return map.size(); }
 
     /** Returns the keys. */
-    @SuppressWarnings("unchecked")
-	public Set<KeyType> keySet() {
+
+	  public Set<KeyType> keySet() {
     	return (Set<KeyType>) map.keySet();
     }
 

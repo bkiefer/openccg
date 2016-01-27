@@ -20,7 +20,7 @@ package opennlp.ccg.hylo;
 
 import opennlp.ccg.synsem.*;
 import opennlp.ccg.unify.*;
-import org.jdom.*;
+import org.jdom2.*;
 
 /**
  * A class for variables over ModeLabel objects.

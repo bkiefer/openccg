@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2003 Jason Baldridge and University of Edinburgh (Michael White)
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -23,7 +23,7 @@ import opennlp.ccg.synsem.*;
 
 import java.util.*;
 
-import org.jdom.Element;
+import org.jdom2.Element;
 
 /**
  * Super class for application rules.
@@ -33,9 +33,9 @@ import org.jdom.Element;
  * @version $Revision: 1.8 $, $Date: 2009/12/21 03:27:18 $
  */
 public abstract class AbstractApplicationRule extends AbstractRule {
-	
+
 	private static final long serialVersionUID = 1L;
-	
+
 	protected Slash _functorSlash;
 
     /** Returns an XML element representing the rule. */
@@ -70,7 +70,7 @@ public abstract class AbstractApplicationRule extends AbstractRule {
                 appendLFs(xyCat, yCat, result, sub);
                 results.add(result);
                 Slash xyOuterSlash = ((BasicArg)xyOuter).getSlash();
-                _headCats.add(xyOuterSlash.isModifier() ? yCat : xyCat); 
+                _headCats.add(xyOuterSlash.isModifier() ? yCat : xyCat);
             } else if (xyOuter instanceof SetArg) {
                 SetArg xyOuterSet = (SetArg)xyOuter;
                 results = new ArrayList<Category>(xyOuterSet.size());
@@ -87,8 +87,8 @@ public abstract class AbstractApplicationRule extends AbstractRule {
                         appendLFs(xyCat, yCat, result, sub);
                         results.add(result);
                         Slash xyOuterSlash = argi.getSlash();
-                        _headCats.add(xyOuterSlash.isModifier() ? yCat : xyCat); 
-                    } catch (UnifyFailure uf) {}                
+                        _headCats.add(xyOuterSlash.isModifier() ? yCat : xyCat);
+                    } catch (UnifyFailure uf) {}
                 }
             } else {
                 throw new UnifyFailure();
@@ -97,7 +97,7 @@ public abstract class AbstractApplicationRule extends AbstractRule {
             if (results.size() == 0) {
                 throw new UnifyFailure();
             }
-            
+
             return results;
         } else {
             throw new UnifyFailure();

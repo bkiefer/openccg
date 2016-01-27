@@ -42,7 +42,6 @@ public class Realize
 {
     private static PrintWriter out;
 
-    @SuppressWarnings("unchecked")
 	public static void main(String[] args) throws Exception {
 
         String usage = "Usage: java opennlp.ccg.Realize (-g <grammarfile>) (-exactmatches) (-ngramorder N) <inputfile> (<outputfile>)";

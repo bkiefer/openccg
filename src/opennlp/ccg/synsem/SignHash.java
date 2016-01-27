@@ -1,17 +1,17 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2003-5 Jason Baldridge, Gann Bierner and 
+// Copyright (C) 2003-5 Jason Baldridge, Gann Bierner and
 //                      University of Edinburgh (Michael White)
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -19,7 +19,8 @@
 
 package opennlp.ccg.synsem;
 
-import gnu.trove.*;
+import gnu.trove.set.hash.*;
+import gnu.trove.strategy.*;
 import java.util.*;
 
 import opennlp.ccg.lexicon.Word;
@@ -33,12 +34,12 @@ import opennlp.ccg.lexicon.Word;
  * @author      Michael White
  * @version     $Revision: 1.13 $, $Date: 2009/12/21 02:15:44 $
  */
-public class SignHash extends THashSet {
+public class SignHash extends TCustomHashSet {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	/** Hashing strategy that uses Sign's surfaceWordHashCode and surfaceWordEquals methods. */
-    protected static TObjectHashingStrategy surfaceWordHashingStrategy = new TObjectHashingStrategy() {
+    protected static HashingStrategy surfaceWordHashingStrategy = new HashingStrategy() {
 		private static final long serialVersionUID = 1L;
 		public int computeHashCode(java.lang.Object o) {
             return ((Sign)o).surfaceWordHashCode();
@@ -65,7 +66,7 @@ public class SignHash extends THashSet {
         this();
         for (Sign s : c) insert(s);
     }
-    
+
     /**
      * Returns this as a set of signs.
      */
@@ -73,9 +74,9 @@ public class SignHash extends THashSet {
 	public Set<Sign> asSignSet() { return (Set<Sign>) this; }
 
     /**
-     * Adds a sign, keeping the one with lower derivational complexity 
-     * if there is an equivalent one there already; returns the old 
-     * sign if it was displaced, the new sign if there was no equivalent 
+     * Adds a sign, keeping the one with lower derivational complexity
+     * if there is an equivalent one there already; returns the old
+     * sign if it was displaced, the new sign if there was no equivalent
      * old sign, or null if the sign was not actually added.
      */
     public Sign insert(Sign sign) {
@@ -92,14 +93,14 @@ public class SignHash extends THashSet {
         	add(sign); return sign;
         }
     }
-    
+
     /** Returns the signs sorted by their words lexicographically. */
     public List<Sign> getSignsSorted() {
     	ArrayList<Sign> retval = new ArrayList<Sign>(asSignSet());
-    	Collections.sort(retval, signComparator); 
+    	Collections.sort(retval, signComparator);
     	return retval;
     }
-    
+
     /** Comparator for signs to provide a persistent ordering. */
     public static final Comparator<Sign> signComparator = new Comparator<Sign>() {
 		public int compare(Sign sign1, Sign sign2) {
@@ -112,7 +113,7 @@ public class SignHash extends THashSet {
     	int cmp = 0;
     	cmp = sign1.getDerivationHistory().compareTo(sign2.getDerivationHistory());
     	if (cmp != 0) return cmp;
-    	List<Word> words1 = sign1.getWords(); 
+    	List<Word> words1 = sign1.getWords();
     	List<Word> words2 = sign2.getWords();
     	cmp = compareTo(words1, words2);
     	if (cmp != 0) return cmp;
@@ -123,7 +124,7 @@ public class SignHash extends THashSet {
     	if (h1 > h2) return 1;
     	return 0;
     }
-    
+
     /** Compares lists of words lexicographically. */
     public static int compareTo(List<Word> words1, List<Word> words2) {
     	int i=0;

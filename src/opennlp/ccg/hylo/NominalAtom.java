@@ -28,7 +28,7 @@ import opennlp.ccg.grammar.*;
 import opennlp.ccg.synsem.*;
 import opennlp.ccg.unify.*;
 
-import org.jdom.*;
+import org.jdom2.*;
 
 /**
  * A hybrid logic nominal, an atomic formula which holds true at exactly one

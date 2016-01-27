@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2002-7 Jason Baldridge, Gann Bierner and Michael White
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -19,14 +19,14 @@
 package opennlp.ccg.synsem;
 
 import java.io.Serializable;
-import gnu.trove.*;
-import org.jdom.Element;
+import gnu.trove.map.hash.*;
+import org.jdom2.Element;
 
 import opennlp.ccg.unify.*;
 
 /**
  * A categorial slash which has an optional mode associated with it.
- * 
+ *
  * @author Jason Baldridge
  * @author Gann Bierner
  * @author Michael White
@@ -53,11 +53,11 @@ public final class Slash implements Unifiable, Mutable, Serializable {
 	private final Modality _modality;
 
 	private byte _ability = INERT_OR_ACTIVE;
-	
+
 	private boolean _modifier = false;
 
 	private boolean _harmonicCompositionResult = false;
-	
+
 	public Slash(Element el) {
 		String d = el.getAttributeValue("dir");
 		if (d == null)
@@ -113,7 +113,7 @@ public final class Slash implements Unifiable, Mutable, Serializable {
 		_modality = m;
 		_ability = a;
 	}
-	
+
 	public Element toXml() {
     	Element retval = new Element("slash");
     	retval.setAttribute("dir", encode());
@@ -163,27 +163,27 @@ public final class Slash implements Unifiable, Mutable, Serializable {
 			return false;
 		}
 	}
-	
+
 	/** Returns a string for the ability or null if not set. */
 	public String decodeAbility() {
 		if (_ability == INERT) return "inert";
 		else if (_ability == ACTIVE) return "active";
 		else return null;
 	}
-	
+
 	/** Returns whether this cat is a modifier cat (defaults to false). */
 	public boolean isModifier() { return _modifier; }
-	
+
 	/** Sets whether this cat is a modifier cat. */
 	// NB: Might want to change this allow lex overrides of defaults
 	public void setModifier(boolean modifier) { _modifier = modifier; }
-	
+
 	/** Returns whether this arg has resulted from harmonic composition. */
 	public boolean isHarmonicCompositionResult() { return _harmonicCompositionResult; }
-	
+
 	/** Sets whether this arg has resulted from harmonic composition. */
 	public void setHarmonicCompositionResult(boolean harmonicResult) { _harmonicCompositionResult = harmonicResult; }
-	
+
 
 	public void unifyCheck(Object u) throws UnifyFailure {
 		if (u instanceof Slash) {
@@ -280,7 +280,7 @@ public final class Slash implements Unifiable, Mutable, Serializable {
 	}
 
 	/**
-	 * Returns whether this slash equals the given object 
+	 * Returns whether this slash equals the given object
 	 * based on the direction, ability and modality.
 	 */
 	public boolean equals(Object obj) {
@@ -310,9 +310,9 @@ public final class Slash implements Unifiable, Mutable, Serializable {
 		if (obj.getClass() != this.getClass()) return false;
 		Slash s = (Slash) obj;
 		if (_dir != s._dir || _ability != s._ability) return false;
-		if (_modality instanceof Variable) 
+		if (_modality instanceof Variable)
 			return ((Variable)_modality).equals(s._modality, varMap, varMap2);
-		else 
+		else
 			return _modality.equals(s._modality);
 	}
 

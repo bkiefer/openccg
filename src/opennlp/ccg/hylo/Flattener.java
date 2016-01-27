@@ -22,15 +22,9 @@ package opennlp.ccg.hylo;
 import opennlp.ccg.synsem.LF;
 import opennlp.ccg.util.ListMap;
 
-import opennlp.ccg.synsem.*;
-import opennlp.ccg.util.*;
-
 import java.util.*;
 
 import gnu.trove.list.array.*;
-import gnu.trove.map.custom_hash.*;
-import gnu.trove.map.hash.*;
-import gnu.trove.strategy.*;
 
 /**
  * A class for performing flattening operations on LFs.
@@ -59,9 +53,8 @@ public class Flattener {
     // map from nominals to highest pred for that nominal from original expression
 	private Map<Nominal,SatOp> nomMap = new HashMap<Nominal,SatOp>();
 
-    // map from pred to depth in original expression (identity keys)
-	private TObjectIntCustomHashMap depthMap = new TObjectIntCustomHashMap(new IdentityHashingStrategy());
-
+    // map from pred to depth in original expression
+	private Map<Nominal,Integer> depthMap = new HashMap<Nominal,Integer>();
 
 	// map from nominal to highest parent nominal in original expression, or null if a root
 	private Map<Nominal,Nominal> parentMap = new HashMap<Nominal,Nominal>();
@@ -243,7 +236,7 @@ public class Flattener {
         }
         // set alts, opts, chunks
         if (!alts.empty()) satOp.alts = new ArrayList<Alt>(alts);
-        if (opts.size() > 0) satOp.opts = new TIntArrayList(opts.toNativeArray());
+        if (opts.size() > 0) satOp.opts = new TIntArrayList(opts.toArray());
         satOp.setChunks(lf.getChunks());
     }
 
@@ -267,7 +260,6 @@ public class Flattener {
                 if (!satOp.alts.contains(alt)) satOp.alts.add(alt);
             }
             Collections.sort(satOp.alts);
-
         }
         if (!opts.isEmpty()) {
             if (satOp.opts == null) satOp.opts = new TIntArrayList(3);

@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2004 University of Edinburgh (Michael White)
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -24,16 +24,16 @@ import opennlp.ccg.util.*;
 import java.util.*;
 import java.io.*;
 
-import gnu.trove.*;
+import gnu.trove.set.hash.*;
 
 /**
- * AN n-gram filter that detects "a" followed by a word beginning with a vowel, 
+ * AN n-gram filter that detects "a" followed by a word beginning with a vowel,
  * or "an" followed by a word beginning with a consonant.
- * Note that this filter only makes an approximate check, which may be augmented 
- * with a set of exceptions. 
- * Exceptions may be culled from a file of bigrams using cullAAnExceptions, 
+ * Note that this filter only makes an approximate check, which may be augmented
+ * with a set of exceptions.
+ * Exceptions may be culled from a file of bigrams using cullAAnExceptions,
  * which may be accessed from the command line using the -c option.
- * An appropriate bigrams file can be produced using the SRILM ngram-count tool, 
+ * An appropriate bigrams file can be produced using the SRILM ngram-count tool,
  * with the -text and -write2 options.
  *
  * @author      Michael White
@@ -43,26 +43,26 @@ public class AAnFilter implements NgramFilter, Reversible
 {
     // exceptions
     private Set<List<Word>> exceptions = null;
-    
-    
+
+
     /** Constructor. */
     public AAnFilter() {}
-    
+
     /** Constructor that loads a/an exceptions from the given infile of bigrams. */
-    public AAnFilter(String infile) throws IOException { 
-        loadAAnExceptions(infile); 
+    public AAnFilter(String infile) throws IOException {
+        loadAAnExceptions(infile);
     }
-    
+
 
     /** Flag for whether to reverse words before filtering. */
     protected boolean reverse = false;
-    
+
     /** Get reverse flag. */
     public boolean getReverse() { return reverse; }
-    
+
     /** Set reverse flag. */
     public void setReverse(boolean reverse) { this.reverse = reverse; }
-    
+
 
     /** Returns whether to filter out the given word sequence. */
     public boolean filterOut(List<Word> words) {
@@ -71,15 +71,15 @@ public class AAnFilter implements NgramFilter, Reversible
             Word w2 = words.get(i+1);
             if (filterOut(w1, w2)) return true;
         }
-        return false; 
+        return false;
     }
-    
+
     /** Returns whether to filter out the given word bigram (reversed if apropos). */
     public boolean filterOut(Word w1, Word w2) {
         if (reverse) {
             Word tmp = w1; w1 = w2; w2 = tmp;
         }
-        String f1 = w1.getForm(); 
+        String f1 = w1.getForm();
         if (f1 != "a" && f1 != "an") return false;
         String f1Alt = (f1 == "a") ? "an" : "a";
         String f2 = w2.getForm();
@@ -89,27 +89,27 @@ public class AAnFilter implements NgramFilter, Reversible
         else
             return defaultRetval;
     }
-    
+
     // returns whether to filter out the bigram by default
     private static boolean filterOutByDefault(String w1, String w2) {
         boolean w2StartsWithVowel = startsWithVowel(w2);
         return (w1 == "a" && w2StartsWithVowel) || (w1 == "an" && !w2StartsWithVowel);
     }
-    
+
     // initial vowel
     private static boolean startsWithVowel(String word) {
         char c = word.charAt(0);
         return (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u') ||
                (c == 'A' || c == 'E' || c == 'I' || c == 'O' || c == 'U');
     }
-    
+
     // words for a/an
     private static final Word A_WORD = Word.createWord("a");
     private static final Word AN_WORD = Word.createWord("an");
-    
+
     // reusable list for lookup
     private List<Word> keyList = new ArrayListWithIdentityEquals<Word>(2);
-    
+
     // looks up whether the bigram is an exception
     private boolean isException(String w1, String w2) {
         if (exceptions == null) return false;
@@ -118,13 +118,13 @@ public class AAnFilter implements NgramFilter, Reversible
         keyList.add(Word.createWord(w2));
         return exceptions.contains(keyList);
     }
-    
+
     // singletons for a/an
     @SuppressWarnings("unchecked")
 	private static final List<Word> A_SINGLETON = (List<Word>) Interner.globalIntern(new SingletonList<Word>(A_WORD));
     @SuppressWarnings("unchecked")
     private static final List<Word> AN_SINGLETON = (List<Word>) Interner.globalIntern(new SingletonList<Word>(AN_WORD));
-    
+
     /** Adds an a/an bigram as an exception. */
     @SuppressWarnings("unchecked")
     public void addException(String w1, String w2) {
@@ -143,7 +143,7 @@ public class AAnFilter implements NgramFilter, Reversible
         exceptions.add(excBigram);
     }
 
-    
+
     /** Culls a/an exceptions from the given infile of bigrams, writing them to the given outfile. */
     public static void cullAAnExceptions(String infile, String outfile) throws IOException {
         Reader in = new BufferedReader(new FileReader(infile));
@@ -170,7 +170,7 @@ public class AAnFilter implements NgramFilter, Reversible
         in.close();
         out.flush(); out.close();
     }
-    
+
 
     /** Loads a/an exceptions from the given infile of bigrams. */
     public void loadAAnExceptions(String infile) throws IOException {
@@ -190,17 +190,17 @@ public class AAnFilter implements NgramFilter, Reversible
         in.close();
     }
 
-    
+
     /** Test loading and filtering, or cull exceptions from bigrams. */
     public static void main(String[] args) throws IOException {
-        
+
         String usage = "Usage: java opennlp.ccg.ngrams.AAnFilter (<exceptionsfile>) <tokens> | -c <bigramsfile> <exceptionsfile>";
-        
+
         if (args.length > 0 && args[0].equals("-h")) {
             System.out.println(usage);
             System.exit(0);
         }
-        
+
         // cull exceptions with -c
         if (args[0].equals("-c")) {
             String infile = args[1]; String outfile = args[2];
@@ -208,8 +208,8 @@ public class AAnFilter implements NgramFilter, Reversible
             cullAAnExceptions(infile, outfile);
             System.exit(0);
         }
-        
-        // otherwise optionally load exceptions, ... 
+
+        // otherwise optionally load exceptions, ...
         AAnFilter aanFilter = new AAnFilter();
         String infile = null; String tokens = null;
         if (args.length >= 2) { infile = args[0]; tokens = args[1]; }
@@ -219,7 +219,7 @@ public class AAnFilter implements NgramFilter, Reversible
             System.out.println();
             aanFilter.loadAAnExceptions(infile);
         }
-        
+
         // then filter given tokens
         Tokenizer tokenizer = new DefaultTokenizer();
         List<Word> words = tokenizer.tokenize(tokens); //, true);

@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2002-7 Jason Baldridge, Gunes Erkan and Michael White
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -18,7 +18,7 @@
 package opennlp.ccg.unify;
 
 import java.io.Serializable;
-import gnu.trove.TObjectIntHashMap;
+import gnu.trove.map.hash.*;
 import opennlp.ccg.grammar.*;
 
 /**
@@ -30,14 +30,14 @@ import opennlp.ccg.grammar.*;
  * @version     $Revision: 1.9 $, $Date: 2009/07/17 04:23:30 $
  **/
 public class GFeatVar implements Variable, Indexed, Mutable, Serializable {
-    
+
 	private static final long serialVersionUID = -5526887599728099988L;
-	
+
 	protected final String _name;
     protected int _index;
     protected int _hashCode;
     protected SimpleType type;
-    
+
     public GFeatVar(String name) {
         this(name, 0, null);
     }
@@ -52,7 +52,7 @@ public class GFeatVar implements Variable, Indexed, Mutable, Serializable {
         type = (st != null) ? st : Grammar.theGrammar.types.getSimpleType(Types.TOP_TYPE);
         _hashCode = _name.hashCode() + _index + type.getIndex();
     }
-    
+
     public String name() {
         return _name;
     }
@@ -60,11 +60,11 @@ public class GFeatVar implements Variable, Indexed, Mutable, Serializable {
     public Object copy() {
         return new GFeatVar(_name, _index, type);
     }
-    
+
     public void deepMap(ModFcn mf) {
         mf.modify(this);
     }
-    
+
     public int getIndex() {
         return _index;
     }
@@ -85,7 +85,7 @@ public class GFeatVar implements Variable, Indexed, Mutable, Serializable {
     public int hashCode() {
         return _hashCode;
     }
-    
+
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof GFeatVar)) return false;
@@ -105,7 +105,7 @@ public class GFeatVar implements Variable, Indexed, Mutable, Serializable {
 		varMap.put(this, next);
 		return next;
 	}
-        
+
     /**
 	 * Returns whether this var equals the given object up to variable names,
 	 * using the given maps from vars to ints.
@@ -119,9 +119,9 @@ public class GFeatVar implements Variable, Indexed, Mutable, Serializable {
         if (!this.type.equals(gv.type)) return false;
         return true;
     }
-    
+
     public void unifyCheck(Object o) throws UnifyFailure {}
-    
+
     public Object unify(Object u, Substitution sub) throws UnifyFailure {
         if (equals(u)) {
             return this;
@@ -162,7 +162,7 @@ public class GFeatVar implements Variable, Indexed, Mutable, Serializable {
     }
 
 
-    public String toString() { 
+    public String toString() {
         String retval = _name;
         if (!type.getName().equals(Types.TOP_TYPE)) retval += ":" + type.getName();
         return retval;

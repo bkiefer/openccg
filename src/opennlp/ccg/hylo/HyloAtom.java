@@ -19,7 +19,6 @@
 package opennlp.ccg.hylo;
 
 import opennlp.ccg.unify.*;
-import gnu.trove.*;
 import gnu.trove.map.hash.*;
 
 /**

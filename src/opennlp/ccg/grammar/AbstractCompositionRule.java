@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2002-3 Jason Baldridge and University of Edinburgh (Michael White)
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -25,11 +25,11 @@ import opennlp.ccg.synsem.*;
 import java.util.*;
 import java.util.prefs.Preferences;
 
-import org.jdom.Element;
+import org.jdom2.Element;
 
 /**
  * Super class for composition rules.
- * 
+ *
  * @author Jason Baldridge
  * @author Michael White
  * @version $Revision: 1.10 $, $Date: 2009/12/21 03:27:18 $
@@ -40,19 +40,19 @@ public abstract class AbstractCompositionRule extends AbstractApplicationRule {
 
 	/** Preference key for Eisner constraints. */
     public static final String EISNER_CONSTRAINTS = "Use Eisner Constraints";
-    
-	/** 
+
+	/**
 	 * Flag for whether to impose Eisner's normal form constraints.
-	 * The flag is initialized based on user preferences; 
-	 * it must be changed for further preferences to take effect. 
+	 * The flag is initialized based on user preferences;
+	 * it must be changed for further preferences to take effect.
 	 */
 	public static boolean useEisnerConstraints = initEisnerConstraints();
-	
+
 	private static boolean initEisnerConstraints() {
         Preferences prefs = Preferences.userNodeForPackage(TextCCG.class);
         return prefs.getBoolean(EISNER_CONSTRAINTS, true);
 	}
-	
+
 	protected boolean _isHarmonic;
 
 	protected Slash _argSlash;
@@ -66,7 +66,7 @@ public abstract class AbstractCompositionRule extends AbstractApplicationRule {
     }
 
 	protected boolean eisner() { return useEisnerConstraints && _isHarmonic; }
-	
+
 	protected List<Category> apply(Category xyCat, Category yzCat) throws UnifyFailure {
 
 		if (xyCat instanceof ComplexCat && yzCat instanceof ComplexCat) {
@@ -93,7 +93,7 @@ public abstract class AbstractCompositionRule extends AbstractApplicationRule {
 					Category outcome = createResult(xyCC.getResult(), zStack, xySlash, sub);
 					appendLFs(xyCat, yzCat, outcome, sub);
 					results.add(outcome);
-	                _headCats.add(xySlash.isModifier() ? yzCat : xyCat); 
+	                _headCats.add(xySlash.isModifier() ? yzCat : xyCat);
 				} else if (xyOuterCat instanceof ComplexCat) {
 					// e.g. s/(s/n) Y/Z
 					Substitution sub = new GSubstitution();
@@ -103,7 +103,7 @@ public abstract class AbstractCompositionRule extends AbstractApplicationRule {
 					Category outcome = createResult(xyCC.getResult(), zStack, xySlash, sub);
 					appendLFs(xyCat, yzCat, outcome, sub);
 					results.add(outcome);
-	                _headCats.add(xySlash.isModifier() ? yzCat : xyCat); 
+	                _headCats.add(xySlash.isModifier() ? yzCat : xyCat);
 				}
 			} else if (xyOuter instanceof SetArg) {
 				// e.g. s/{s,n} Y/Z
@@ -123,7 +123,7 @@ public abstract class AbstractCompositionRule extends AbstractApplicationRule {
 					Category outcome = createResult(result, zStack, xySlash, sub);
 					appendLFs(xyCat, yzCat, outcome, sub);
 					results.add(outcome);
-	                _headCats.add(xySlash.isModifier() ? yzCat : xyCat); 
+	                _headCats.add(xySlash.isModifier() ? yzCat : xyCat);
 				} else {
 					boolean success = false;
 					for (int i = 0; i < xyOuterSet.size(); i++) {
@@ -142,7 +142,7 @@ public abstract class AbstractCompositionRule extends AbstractApplicationRule {
 							Category outcome = createResult(result, zStack, xySlash, sub);
 							appendLFs(xyCat, yzCat, outcome, sub);
 							results.add(outcome);
-			                _headCats.add(xySlash.isModifier() ? yzCat : xyCat); 
+			                _headCats.add(xySlash.isModifier() ? yzCat : xyCat);
 							success = true;
 						}
 					}
@@ -171,7 +171,7 @@ public abstract class AbstractCompositionRule extends AbstractApplicationRule {
 			newStack.deepMap(INERTIZER_FCN);
 		}
 		newStack.get(0).setSlashModifier(false);
-		if (_isHarmonic && useEisnerConstraints) 
+		if (_isHarmonic && useEisnerConstraints)
 			newStack.setSlashHarmonicCompositionResult(true);
 		if (result instanceof ComplexCat) {
 			((ComplexCat) result).add(newStack);

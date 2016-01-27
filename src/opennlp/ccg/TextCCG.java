@@ -32,7 +32,7 @@ import opennlp.ccg.ngrams.*;
 import opennlp.ccg.test.*;
 import opennlp.ccg.realize.Edge; // only realization edges referenced (for preferences)
 
- import org.jdom2.*;
+import org.jdom2.*;
 
 import java.io.*;
 import java.net.*;
@@ -89,6 +89,7 @@ public class TextCCG {
     public static String SCORING = "Apply chart scoring";
     public static String TIMING = "Show timing information";
     public static String INCREMENTAL = "Use incremental parsing";
+
 
     /** Main method for tccg. */
     @SuppressWarnings("unchecked")
@@ -161,7 +162,8 @@ public class TextCCG {
               ":wordpos", ":nowordpos", ":eisner", ":noeisner",
               ":ptl", ":noptl", ":pel", ":nopel", ":ppv", ":noppv", ":pcpv", ":nopcpv", ":plazy", ":noplazy",
               ":r", ":sel", ":2xml", ":2tb", ":2apml", ":tl", ":notl", ":el", ":noel",
-              ":nbtl", ":nonbtl", ":pv", ":nopv", ":cpv", ":nocpv", ":upon", ":upoff", ":t", ":toff", ":inc", ":noinc",
+              ":nbtl", ":nonbtl", ":pv", ":nopv", ":cpv", ":nocpv", ":upon", ":upoff",
+              ":t", ":toff", ":inc", ":noinc",
               ":ion", ":ioff", ":mion", ":mioff", ":con", ":coff", ":flon", ":floff", ":ccon", ":ccoff", ":pon", ":poff",
               ":q", ":h", ":scoring", ":noscoring", ":asrcorrection", ":noasrcorrection",
               ":disclevelcomp", ":nodisclevelcomp", ":showtiming", ":noshowtiming", "incr", "noincr",

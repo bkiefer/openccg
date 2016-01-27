@@ -23,7 +23,7 @@ import opennlp.ccg.synsem.*;
 
 import java.util.*;
 
-import org.jdom.Element;
+import org.jdom2.Element;
 
 /**
  * Backward composition, e.g. Y\Z X\Y => X\Z

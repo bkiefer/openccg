@@ -19,7 +19,7 @@
 package opennlp.ccg.lexicon;
 
 import opennlp.ccg.synsem.*;
-import org.jdom.*;
+import org.jdom2.*;
 
 /**
  * Data structure for storing information about a category family entry.

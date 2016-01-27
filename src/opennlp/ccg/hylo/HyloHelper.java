@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2003-5 Jason Baldridge and University of Edinburgh (Michael White)
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -22,11 +22,11 @@ import opennlp.ccg.synsem.*;
 import opennlp.ccg.unify.*;
 import opennlp.ccg.grammar.*;
 import opennlp.ccg.lexicon.Lexicon;
-import org.jdom.*;
+import org.jdom2.*;
 
 import java.util.*;
 
-import gnu.trove.*;
+import gnu.trove.list.array.*;
 
 /**
  * A utility class to help with certain global operations over hybrid logic
@@ -40,8 +40,8 @@ public class HyloHelper {
 
     //-----------------------------------------------------------------
     // XML functions
-    
-    /** 
+
+    /**
      * Builds a Hylo term from the given element.
      * An "lf" element may be used to wrap one or more (implicitly conj-ed) terms.
      */
@@ -54,7 +54,7 @@ public class HyloHelper {
             String name = getName(e);
             retval = new HyloVar(prefix(name), type(name));
         } else if (type.equals("nomvar")) {
-            String name = getName(e); 
+            String name = getName(e);
             boolean shared = "true".equals(e.getAttributeValue("shared"));
             retval = new NominalVar(prefix(name), type(name), shared);
         } else if (type.equals("nom")) {
@@ -93,19 +93,19 @@ public class HyloHelper {
     }
 
     // returns the value of the attribute 'name' or 'n'
-    private static String getName(Element e) { 
+    private static String getName(Element e) {
         String name = e.getAttributeValue("name");
         if (name == null) name = e.getAttributeValue("n");
         return name;
     }
-    
+
     // returns the simple type with the given name, if it exists, or null if not
     private static SimpleType existingType(String name) {
         Types types = Grammar.theGrammar.types;
         if (types.containsSimpleType(name)) return types.getSimpleType(name);
         else return null;
     }
-    
+
     /** Returns the prefix of the name, up to an optional colon. */
     protected static String prefix(String name) {
         int index = name.indexOf(":");
@@ -120,10 +120,10 @@ public class HyloHelper {
         if (suffix != null) return Grammar.theGrammar.types.getSimpleType(suffix);
         else return null;
     }
-    
-        
+
+
     /**
-     * Returns a Hylo term from the children of the given element, 
+     * Returns a Hylo term from the children of the given element,
      * adding an implicit CONJ op if necessary.
      */
     @SuppressWarnings("unchecked")
@@ -141,8 +141,8 @@ public class HyloHelper {
     }
 
     /**
-     * Returns an XML representation of the given LF, 
-     * wrapped with an 'lf' element, 
+     * Returns an XML representation of the given LF,
+     * wrapped with an 'lf' element,
      * removing CONJ ops that may be left implicit.
      */
     public static Element toXml(LF lf) {
@@ -152,20 +152,20 @@ public class HyloHelper {
         return retval;
     }
 
-    
+
     //-----------------------------------------------------------------
     // process chunks
-    
-    /** 
+
+    /**
      * Processes and removes any chunk elements.
-     * Each chunk element is numbered, and all contained elements are marked 
+     * Each chunk element is numbered, and all contained elements are marked
      * as being contained by this chunk, via a "chunks" attribute.
      */
     public static void processChunks(Element e) {
         processChunks(e, null, 0);
         removeChunkElts(e);
     }
-    
+
     // recursively processes chunks, threading count through calls
     @SuppressWarnings("unchecked")
 	private static int processChunks(Element e, String chunks, int count) {
@@ -188,7 +188,7 @@ public class HyloHelper {
         // return current count
         return count;
     }
-    
+
     // converts chunk strings
     private static TIntArrayList convertChunks(String chunks) {
         String[] tokens = chunks.split("\\s+");
@@ -198,10 +198,10 @@ public class HyloHelper {
         }
         return retval;
     }
-    
+
     //-----------------------------------------------------------------
     // recursively remove certain elements
-    
+
     private static abstract class ElementTest {
         abstract boolean test(Element elt);
     }
@@ -209,7 +209,7 @@ public class HyloHelper {
     // recursively removes elements meeting given test
     @SuppressWarnings("unchecked")
 	private static void removeElts(Element elt, ElementTest eltTest) {
-        // nb: need to dump children into a new list, in order to get a list iterator 
+        // nb: need to dump children into a new list, in order to get a list iterator
         //     that will allow multiple adds
         List<Element> children = elt.getChildren();
         List<Element> newChildren = new ArrayList<Element>(children.size());
@@ -226,27 +226,27 @@ public class HyloHelper {
                 }
             }
         }
-        elt.removeContent(); 
-        elt.setContent(newChildren); 
+        elt.removeContent();
+        elt.setContent(newChildren);
     }
-    
+
     // recursively removes conj ops
     private static void removeConjOps(Element lfElt) {
         removeElts(
-            lfElt, 
+            lfElt,
             new ElementTest() {
                 boolean test(Element elt) {
-                    return elt.getName().equals("op") && 
+                    return elt.getName().equals("op") &&
                            elt.getAttributeValue("name").equals(Op.CONJ);
                 }
             }
         );
     }
-    
+
     // recursively removes chunk elements
     private static void removeChunkElts(Element lfElt) {
         removeElts(
-            lfElt, 
+            lfElt,
             new ElementTest() {
                 boolean test(Element elt) {
                     return elt.getName().equals("chunk");
@@ -254,21 +254,21 @@ public class HyloHelper {
             }
         );
     }
-    
+
 
     //-----------------------------------------------------------------
     // functions for elementary predications
 
     /**
-     * Returns whether the given LF is an elementary predication, 
+     * Returns whether the given LF is an elementary predication,
      * ie a lexical predication, relation predication or attribute-value predication.
      */
     public static boolean isElementaryPredication(LF lf) {
         return isLexPred(lf) || isRelPred(lf) || isAttrPred(lf);
     }
-    
+
     /**
-     * Returns whether the given elementary predication is a lexical predication, 
+     * Returns whether the given elementary predication is a lexical predication,
      * ie one of the form @x(prop).
      */
     public static boolean isLexPred(LF pred) {
@@ -279,7 +279,7 @@ public class HyloHelper {
     }
 
     /**
-     * Returns whether the given elementary predication is a relation predication, 
+     * Returns whether the given elementary predication is a relation predication,
      * ie one of the form @x(&lt;Rel&gt;y).
      */
     public static boolean isRelPred(LF pred) {
@@ -292,8 +292,8 @@ public class HyloHelper {
     }
 
     /**
-     * Returns whether the given elementary predication is an attribute-value predication, 
-     * ie one of the form @x(&lt;Rel&gt;prop).  Note that the prop is also allowed to be 
+     * Returns whether the given elementary predication is an attribute-value predication,
+     * ie one of the form @x(&lt;Rel&gt;prop).  Note that the prop is also allowed to be
      * a HyloVar.
      */
     public static boolean isAttrPred(LF pred) {
@@ -302,22 +302,22 @@ public class HyloHelper {
         LF arg = satOp.getArg();
         return isAttr(arg);
     }
-    
+
     /**
-     * Returns whether the given arg is an attribute-value pair, 
-     * ie one of the form &lt;Rel&gt;prop.  Note that the prop is also allowed to be 
+     * Returns whether the given arg is an attribute-value pair,
+     * ie one of the form &lt;Rel&gt;prop.  Note that the prop is also allowed to be
      * a HyloVar.
      */
     public static boolean isAttr(LF arg) {
         if (!(arg instanceof Diamond)) return false;
         Diamond d = (Diamond) arg;
         LF dArg = d.getArg();
-        return ( dArg instanceof Proposition || 
+        return ( dArg instanceof Proposition ||
                  (dArg instanceof HyloVar && !(dArg instanceof NominalVar)) );
     }
-    
+
     /**
-     * Returns the name of the lexical predicate of the given elementary predication, 
+     * Returns the name of the lexical predicate of the given elementary predication,
      * or null, if the given LF is not a lexical predicate.
      */
     public static String getLexPred(LF lf) {
@@ -325,9 +325,9 @@ public class HyloHelper {
         LF arg = ((SatOp)lf).getArg();
         return ((Proposition)arg).toString();
     }
-    
+
     /**
-     * Returns the name of the relation of the given elementary predication, 
+     * Returns the name of the relation of the given elementary predication,
      * or null, if the given LF is not a relation or attribute-value predicate.
      */
     public static String getRel(LF lf) {
@@ -335,10 +335,10 @@ public class HyloHelper {
         LF arg = ((SatOp)lf).getArg();
         return ((Diamond)arg).getMode().toString();
     }
-    
+
     /**
-     * Returns the string value of the attribute-value predicate, or 
-     * null if the given LF is not an attribute-value predicate or has no value. 
+     * Returns the string value of the attribute-value predicate, or
+     * null if the given LF is not an attribute-value predicate or has no value.
      */
     public static String getVal(LF lf) {
     	if (!isAttrPred(lf)) return null;
@@ -347,9 +347,9 @@ public class HyloHelper {
         if (dArg instanceof Proposition) return ((Proposition)dArg).getName();
         return null;
     }
-    
+
     /**
-     * Returns the principal nominal the given elementary predication, 
+     * Returns the principal nominal the given elementary predication,
      * or null, if the given LF is not an elementary predication.
      */
     public static Nominal getPrincipalNominal(LF lf) {
@@ -358,23 +358,23 @@ public class HyloHelper {
     }
 
     /**
-     * Returns the secondary nominal of the given elementary predication, 
+     * Returns the secondary nominal of the given elementary predication,
      * or null, if the given LF is not a relation predication.
      */
     public static Nominal getSecondaryNominal(LF lf) {
         if (!isRelPred(lf)) return null;
         LF arg = ((SatOp)lf).getArg();
-        return (Nominal) ((Diamond)arg).getArg(); 
+        return (Nominal) ((Diamond)arg).getArg();
     }
 
-    
+
     //-----------------------------------------------------------------
-    // flattening 
+    // flattening
 
     /**
-     * Returns a flattened, sorted list of elementary preds from the given LF 
-     * as a conjunction op, or as a single LF, if there is only one. 
-     * LF chunks are preserved on satops, as are alts (exclusive disjunctions) 
+     * Returns a flattened, sorted list of elementary preds from the given LF
+     * as a conjunction op, or as a single LF, if there is only one.
+     * LF chunks are preserved on satops, as are alts (exclusive disjunctions)
      * and opts (optional parts).
      * A runtime exception is thrown if the LF cannot be flattened.
      */
@@ -388,9 +388,9 @@ public class HyloHelper {
         	return new Op(Op.CONJ, (List<LF>)preds);
         }
     }
-    
+
     /**
-     * Returns a list of predications from the given LF, which is assumed to be either 
+     * Returns a list of predications from the given LF, which is assumed to be either
      * a conjunction of elementary predications or a single elementary predication.
      */
     public static List<SatOp> getPreds(LF lf) {
@@ -400,16 +400,16 @@ public class HyloHelper {
             for (LF arg : args) retval.add((SatOp)arg);
             return retval;
         }
-        else { 
+        else {
             List<SatOp> retval = new ArrayList<SatOp>(1);
             retval.add((SatOp)lf);
             return retval;
         }
     }
-    
+
     /**
-     * Returns the first elementary predication from the given LF, which is assumed to be either 
-     * a conjunction of elementary predications or a single elementary predication; 
+     * Returns the first elementary predication from the given LF, which is assumed to be either
+     * a conjunction of elementary predications or a single elementary predication;
      * otherwise returns null.
      */
     public static SatOp getFirstPred(LF lf) {
@@ -420,30 +420,30 @@ public class HyloHelper {
         }
         return null;
     }
-    
+
     /**
-     * Returns a flattened, sorted list of elementary preds from the given LF 
+     * Returns a flattened, sorted list of elementary preds from the given LF
      * as a list.
-     * LF chunks are preserved on satops, as are alts (exclusive disjunctions) 
+     * LF chunks are preserved on satops, as are alts (exclusive disjunctions)
      * and opts (optional parts).
      * Chunks, alts and opts are propagated through shared nominals.
      * A runtime exception is thrown if the LF cannot be flattened.
      */
-    public static List<SatOp> flatten(LF lf) { 
+    public static List<SatOp> flatten(LF lf) {
         List<SatOp> retval = new Flattener().flatten(lf);
         sort(retval);
         return retval;
     }
-    
+
     /**
      * Returns the first elementary predication in the flattened LF.
      * A runtime exception is thrown if the LF cannot be flattened.
      */
-    public static LF firstEP(LF lf) { 
+    public static LF firstEP(LF lf) {
         List<SatOp> preds = new Flattener().flatten(lf);
         return preds.get(0);
     }
-    
+
     /**
      * Sets the origin of the elementary preds in the given LF (if any).
      */
@@ -458,10 +458,10 @@ public class HyloHelper {
         }
 
     }
-    
-    /** 
+
+    /**
      * Returns a map from nominals to index positions for the first EP for
-     * that nominal in a sorted list of elementary predications. 
+     * that nominal in a sorted list of elementary predications.
      */
     public static Map<Nominal,Integer> nomIndex(List<SatOp> preds) {
     	HashMap<Nominal,Integer> retval = new HashMap<Nominal,Integer>(preds.size()/2);
@@ -472,7 +472,7 @@ public class HyloHelper {
     	}
     	return retval;
     }
-    
+
     /**
      * Returns whether a nominal is a root in the list of EPs using a linear search.
      */
@@ -483,21 +483,21 @@ public class HyloHelper {
     	}
     	return true;
     }
-    
-    
+
+
     //-----------------------------------------------------------------
-    // lexical dependencies 
+    // lexical dependencies
 
     /** Returns the unfilled lexical dependencies for a lexical item's LF. */
     public static List<LexDependency> getUnfilledLexDeps(LF lf) {
     	if (lf == null) return Collections.emptyList();
     	return LexDependency.unfilledLexDeps(getPreds(lf));
     }
-    
+
 	/**
-	 * Returns the filled lexical dependencies from those in the unfilled list 
-	 * by checking the sign's LF for ones that have become filled, removing the 
-	 * corresponding no longer unfilled deps.  
+	 * Returns the filled lexical dependencies from those in the unfilled list
+	 * by checking the sign's LF for ones that have become filled, removing the
+	 * corresponding no longer unfilled deps.
 	 */
 	public static List<LexDependency> getFilledLexDeps(List<LexDependency> unfilled, LF lf) {
     	if (lf == null) return Collections.emptyList();
@@ -505,8 +505,8 @@ public class HyloHelper {
     }
 
 	/**
-	 * Returns the semantic features (attribute-value preds) for the given nominal  
-	 * in the given LF. 
+	 * Returns the semantic features (attribute-value preds) for the given nominal
+	 * in the given LF.
 	 */
 	public static List<SatOp> getSemFeatsForHead(Nominal nominal, LF lf) {
 		if (nominal == null || lf == null) return Collections.emptyList();
@@ -517,75 +517,75 @@ public class HyloHelper {
 		}
 		return retval;
 	}
-	
-	
+
+
     //-----------------------------------------------------------------
-    // compacting 
-    
+    // compacting
+
     /** Composes compact and convertNominals. */
     public static LF compactAndConvertNominals(LF lf, Nominal root) {
         LF retval = compact(lf, root);
         convertNominals(retval);
         return retval;
     }
-    
+
     /** Composes compact and convertNominals with a root sign, for conversion using word positions. */
     public static LF compactAndConvertNominals(LF lf, Nominal root, Sign rootSign) {
         root = convertNominals(lf, rootSign, root);
         LF retval = compact(lf, root);
         return retval;
     }
-    
+
     /**
-     * Returns a compacted LF from the given flattened one. 
-     * A root nominal may also be given (otherwise null). 
+     * Returns a compacted LF from the given flattened one.
+     * A root nominal may also be given (otherwise null).
      * Nominals with multiple parents are kept separate.
-     * If there are any duplicate predications, an attempt 
+     * If there are any duplicate predications, an attempt
      * is made to attach them in different locations.
      */
     public static LF compact(LF lf, Nominal root) {
     	return Compacter.compact(lf, root);
     }
-    
-    
+
+
     //-----------------------------------------------------------------
     // convert nominals
-    
+
     /** Converts nominal vars to atoms, renaming them based on lexical propositions. */
     public static void convertNominals(LF lf) {
     	Converter.convertNominals(lf);
     }
 
 	/**
-	 * Converts nominal vars to atoms, renaming them based on word position, if 
-	 * a root sign is given, otherwise using lexical propositions; 
-	 * returns the converted nominal root. 
+	 * Converts nominal vars to atoms, renaming them based on word position, if
+	 * a root sign is given, otherwise using lexical propositions;
+	 * returns the converted nominal root.
 	 */
 	public static Nominal convertNominals(LF lf, Sign root, Nominal nominalRoot) {
 		return Converter.convertNominals(lf, root, nominalRoot);
 	}
-	
+
 	/**
-	 * Converts nominal atoms back to vars, returning the converted nominal root. 
+	 * Converts nominal atoms back to vars, returning the converted nominal root.
 	 * The LF is assumed to be flattened to elementary predications.
 	 */
 	public static Nominal convertNominalsToVars(LF lf, Nominal nominalRoot) {
 		return Converter.convertNominalsToVars(getPreds(lf), nominalRoot);
 	}
-	
+
 
     //-----------------------------------------------------------------
-    // append 
+    // append
 
     /**
-     * Returns a the conjunction of the two LFs, either 
+     * Returns a the conjunction of the two LFs, either
      * as a conjunction op, or as a single LF, if one is null.
-     * If either LF is itself a conj op, its elements are appended  
+     * If either LF is itself a conj op, its elements are appended
      * instead of the conj op itself.
      * If both LFs are null, null is returned.
      */
     public static LF append(LF lf1, LF lf2) {
-        
+
         // set up new list
         int size = 0;
         List<LF> args1 = null;
@@ -594,7 +594,7 @@ public class HyloHelper {
             size += args1.size();
         } else if (lf1 != null) {
             size++;
-        } 
+        }
         List<LF> args2 = null;
         if (lf2 instanceof Op && ((Op)lf2).getName().equals(Op.CONJ)) {
             args2 = ((Op)lf2).getArguments();
@@ -603,31 +603,31 @@ public class HyloHelper {
             size++;
         }
         List<LF> combined = new ArrayList<LF>(size);
-        
+
         // add to new list
-        if (args1 != null) { 
+        if (args1 != null) {
             combined.addAll(args1);
         } else if (lf1 != null) {
             combined.add(lf1);
         }
-        if (args2 != null) { 
+        if (args2 != null) {
             combined.addAll(args2);
         } else if (lf2 != null) {
             combined.add(lf2);
         }
-        
+
         // return
         if (combined.isEmpty()) { return null; }
         else if (combined.size() == 1) { return combined.get(0); }
         else { return new Op(Op.CONJ, combined); }
     }
 
-    
+
     //-----------------------------------------------------------------
-    // sort 
+    // sort
 
     /**
-     * Sorts the list of elementary predications in a conj op, 
+     * Sorts the list of elementary predications in a conj op,
      * or does nothing if the LF is not a conj op.
      */
     public static void sort(LF lf) {
@@ -635,7 +635,7 @@ public class HyloHelper {
             sort(((Op)lf).getArguments());
         }
     }
-    
+
     /**
      * Sorts a list of elementary predications.
      */
@@ -674,7 +674,7 @@ public class HyloHelper {
             return 0;
         }
     };
-    
+
     // order of elementary predication type
     private static Integer epType(LF lf) {
         if (isLexPred(lf)) return LEX_PRED;
@@ -683,21 +683,21 @@ public class HyloHelper {
         // shouldn't happen
         else return null;
     }
-    
+
     private static Integer LEX_PRED = new Integer(1);
     private static Integer ATTR_PRED = new Integer(2);
     private static Integer REL_PRED = new Integer(3);
 
-    
+
     //-----------------------------------------------------------------
     // check
 
     /**
-     * Checks the list of elementary predications in a conj op 
+     * Checks the list of elementary predications in a conj op
      * for well-formedness, or does nothing if the LF is not a conj op.
      * A UnifyFailure exception is thrown if the check fails.
-     * The only current check is that there is no more than one lexical 
-     * predication per nominal.  
+     * The only current check is that there is no more than one lexical
+     * predication per nominal.
      * The list of predications is assumed to be already sorted.
      */
     public static void check(LF lf) throws UnifyFailure {
@@ -705,13 +705,13 @@ public class HyloHelper {
             check(((Op)lf).getArguments());
         }
     }
-    
+
     private static void check(List<LF> preds) throws UnifyFailure {
         for (int i = 0; i < preds.size()-1; i++) {
             LF lf1 = preds.get(i);
             LF lf2 = preds.get(i+1);
             if (isLexPred(lf1) && isLexPred(lf2) &&
-                getPrincipalNominal(lf1).equals(getPrincipalNominal(lf2))) 
+                getPrincipalNominal(lf1).equals(getPrincipalNominal(lf2)))
             {
                 throw new UnifyFailure();
             }

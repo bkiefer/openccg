@@ -25,7 +25,7 @@ import opennlp.ccg.hylo.*;
 import java.io.Serializable;
 import java.util.*;
 
-import org.jdom.Element;
+import org.jdom2.Element;
 
 /**
  * Implements some default behavior for Rule objects.
@@ -122,7 +122,7 @@ public abstract class AbstractRule implements Rule, Serializable {
 				!disfluencycorrectionRules) { return ; }
 
 
-    	int NbLexicalCorrectionRulesApplied = 0;
+		int NbLexicalCorrectionRulesApplied = 0;
 		int NbTypeShiftingRulesApplied = 0;
 		int NbDiscLevelCompositionRulesApplied = 0;
 		int NbDisflCorrectionRulesApplied = 0;

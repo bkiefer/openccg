@@ -19,7 +19,7 @@
 
 package opennlp.ccg.lexicon;
 
-import org.jdom.*;
+import org.jdom2.*;
 import java.util.*;
 
 /**

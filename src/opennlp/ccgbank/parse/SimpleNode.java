@@ -23,7 +23,7 @@ public class SimpleNode implements Node {
 		  this.lex = lex; this.sense = sense; this.role = role;
 	  }
   }
-  
+
   //CCGbank id
   public String header;
 
@@ -33,51 +33,51 @@ public class SimpleNode implements Node {
   //Node type eg:-Treenode,Leafnode,atomcat etc
   public String  type="";
 
-  //Traps any feature which is leftover 
+  //Traps any feature which is leftover
   public String leftover;
 
   //Headedness info 0 or 1
   public String head="";
-    
+
   //No:of daughters of a node
   public String dtr="";
-    
+
   //Category Specification
   public String cat="";
-  
-  //Category Specification without co-indexation info in leafnodes 
+
+  //Category Specification without co-indexation info in leafnodes
   public String catRedundant="";
-    
+
   //Lexical information
   public String lex="";
-    
+
   //Part of speech info. eg: RB, IN etc
   public String pos="";
 
   // The roles (or rel) that the node plays
   public List<LexSenseRole> nodeRoles = null;
-  
+
   // The arg roles of a verbal cat
   public List<String> argRoles = null;
-  
+
   //First token in the node scope
   Token first_token;
-    
+
   //Final token in the node scope
   Token last_token;
-    
-  //Function which produces the content of the node. 
+
+  //Function which produces the content of the node.
   public String print()throws Exception{
-	
+
 	  Token p=first_token;
-	       
+
 	  while(p!=last_token){
 	      cat=cat+p.image;
 	      p=p.next;
 	  }
-	
+
 	  return cat+last_token.image;
-  } 
+  }
 
 
   //The remaining part incl comments is Javacc generated.
@@ -112,13 +112,19 @@ public class SimpleNode implements Node {
 		return leftover;
 	}
 
+  /**
+   * @return the id
+   */
+  public int getId() {
+    return id;
+  }
 
-public void jjtOpen() {
+  public void jjtOpen() {
   }
 
   public void jjtClose() {
   }
-  
+
 
   public void jjtSetParent(Node n) { parent = n; }
   public Node jjtGetParent() { return parent; }

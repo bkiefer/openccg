@@ -18,7 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package opennlp.ccg.synsem;
 
-import org.jdom.*;
+import org.jdom2.*;
 
 /**
  * Utility class to build categories.

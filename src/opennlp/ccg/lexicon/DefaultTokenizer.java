@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2004-5 University of Edinburgh (Michael White)
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -24,10 +24,12 @@ import opennlp.ccg.util.*;
 import java.text.*;
 import java.util.*;
 import javax.xml.datatype.*;
-import gnu.trove.*;
+import gnu.trove.set.hash.*;
+import gnu.trove.strategy.*;
+
 
 /**
- * DefaultTokenizer provides a default implementation of the 
+ * DefaultTokenizer provides a default implementation of the
  * Tokenizer interface.
  *
  * @author      Michael White
@@ -44,23 +46,24 @@ public class DefaultTokenizer implements Tokenizer {
 
     // time format with pattern HH:mm, strict parsing
     private DateFormat timeFormat = null;
-    
+
     // factory for parsing durations, in format "PnYnMnDTnHnMnS", as defined in XML Schema 1.0 section 3.2.6.1
     private DatatypeFactory datatypeFactory = null;
-    
+
     /**
-     * Map from special token semantic classes to special token constants. 
-     * The map is initialized in the constructor, where 
+     * Map from special token semantic classes to special token constants.
+     * The map is initialized in the constructor, where
      * the standard constants (eg Tokenizer.DATE_CLASS and Tokenizer.DATE_VAL) are added.
      */
     protected Map<String, String> specialTokenMap = null;
-    
-    /** 
+
+    /**
      * A set containing semantic classes to replace words with for language models.
      * Equality is checked with identity, for use with interned strings.
      */
     @SuppressWarnings("unchecked")
-	protected Set<String> replacementSemClasses = new THashSet(new TObjectIdentityHashingStrategy());
+    protected Set<String> replacementSemClasses =
+      new TCustomHashSet(new IdentityHashingStrategy());
 
 
     /**
@@ -89,16 +92,16 @@ public class DefaultTokenizer implements Tokenizer {
         specialTokenMap.put(Tokenizer.DUR_CLASS, Tokenizer.DUR_VAL);
         specialTokenMap.put(Tokenizer.NE_CLASS, Tokenizer.NE_VAL);
     }
-    
-    
+
+
     /**
      * Adds a semantic class to replace words with for language models.
      */
     public void addReplacementSemClass(String semClass) {
         replacementSemClasses.add(semClass.intern());
     }
-    
-    /** 
+
+    /**
      * Returns whether the given semantic class is one to replace words with for language models.
      * The sem class is assumed to have been interned.
      */
@@ -106,10 +109,10 @@ public class DefaultTokenizer implements Tokenizer {
         return replacementSemClasses.contains(semClass);
     }
 
-    
+
     /**
-     * Parses an input string into a list of words, 
-     * including any explicitly given factors, 
+     * Parses an input string into a list of words,
+     * including any explicitly given factors,
      * and the semantic class of special tokens.
      * Tokens are parsed into words using parseToken with the strictFactors
      * flag set to false.
@@ -117,10 +120,10 @@ public class DefaultTokenizer implements Tokenizer {
     public List<Word> tokenize(String s) { return tokenize(s, false); }
 
     /**
-     * Parses an input string into a list of words, 
-     * including any explicitly given factors, 
+     * Parses an input string into a list of words,
+     * including any explicitly given factors,
      * and the semantic class of special tokens.
-     * Tokens are parsed into words using parseToken, according to the given 
+     * Tokens are parsed into words using parseToken, according to the given
      * flag for whether to parse factors strictly.
      * The string is assumed to have white-space delimited tokens.
      */
@@ -131,28 +134,28 @@ public class DefaultTokenizer implements Tokenizer {
         return retval;
     }
 
-    
-    /** 
-     * Parses a token into a word, including any explicitly given factors 
+
+    /**
+     * Parses a token into a word, including any explicitly given factors
      * and the semantic class of special tokens.
      * Parsing is performed using parseToken with the strictFactors
      * flag set to false.
      */
     public Word parseToken(String token) { return parseToken(token, false); }
-    
-    /** 
-     * Parses a token into a word, including any explicitly given factors 
-     * and the semantic class of special tokens, according to the given 
+
+    /**
+     * Parses a token into a word, including any explicitly given factors
+     * and the semantic class of special tokens, according to the given
      * flag for whether to parse factors strictly.
      * Recognized pitch accents may be appended to the word form with an underscore.
-     * If the strictFactors flag is true, then colons are always assumed to 
-     * separate attribute-value pairs, and hyphens are always assumed to 
-     * separate attributes from values, and thus colons or hyphens not used as separators 
-     * must be escaped. 
-     * If the strictFactors flag is false, then there must be at least one colon 
-     * and at least one hyphen in the token to trigger parsing of factors, 
-     * in which case colons or hyphens not used as separators 
-     * must again be escaped; otherwise, colons or hyphens on their own may 
+     * If the strictFactors flag is true, then colons are always assumed to
+     * separate attribute-value pairs, and hyphens are always assumed to
+     * separate attributes from values, and thus colons or hyphens not used as separators
+     * must be escaped.
+     * If the strictFactors flag is false, then there must be at least one colon
+     * and at least one hyphen in the token to trigger parsing of factors,
+     * in which case colons or hyphens not used as separators
+     * must again be escaped; otherwise, colons or hyphens on their own may
      * appear without escaping in the word form.
      * After splitting the token into factors, it is unescaped.
      */
@@ -221,12 +224,12 @@ public class DefaultTokenizer implements Tokenizer {
         // done
         return Word.createWord(form,pitchAccent,attrValPairs,stem,POS,supertag,semClass);
     }
-    
-    
+
+
     /**
-     * Returns a string (eg Tokenizer.DATE_CLASS) indicating the semantic class  
-     * of special token, if the given token is recognized as a special 
-     * token; otherwise returns null. 
+     * Returns a string (eg Tokenizer.DATE_CLASS) indicating the semantic class
+     * of special token, if the given token is recognized as a special
+     * token; otherwise returns null.
      */
     public String isSpecialToken(String token) {
         if (token == null) return null;
@@ -238,34 +241,34 @@ public class DefaultTokenizer implements Tokenizer {
         if (isNamedEntity(token)) return Tokenizer.NE_CLASS;
         return null;
     }
-    
+
     /**
-     * Returns the special token constant for the given special token class, 
+     * Returns the special token constant for the given special token class,
      * or null if none.
      */
     public String getSpecialTokenConstant(String semClass) {
         if (semClass == null) return null;
         return specialTokenMap.get(semClass);
     }
-    
-    /** 
-     * Returns true iff the given string is a special token constant 
+
+    /**
+     * Returns true iff the given string is a special token constant
      * (eg Tokenizer.DATE_VAL).
      */
     public boolean isSpecialTokenConstant(String s) {
         return specialTokenMap.containsValue(s);
     }
-    
-    
-    /** 
+
+
+    /**
      * Returns true iff the token is recognized as a date.
-     * The default implementation recognizes dates in the 
-     * format yyyy.MM.dd, e.g. "2004.05.07", or *.MM.dd, e.g. "*.05.07", 
-     * which is taken to mean the 5th of May (in the contextually 
-     * appropriate year).  Note that by including the "*." prefix, 
-     * the format avoids being ambiguous between a date or number; 
-     * that is, with this format, something like "10.01" is 
-     * unambiguously a number, whereas "*.10.01" means the 1st of 
+     * The default implementation recognizes dates in the
+     * format yyyy.MM.dd, e.g. "2004.05.07", or *.MM.dd, e.g. "*.05.07",
+     * which is taken to mean the 5th of May (in the contextually
+     * appropriate year).  Note that by including the "*." prefix,
+     * the format avoids being ambiguous between a date or number;
+     * that is, with this format, something like "10.01" is
+     * unambiguously a number, whereas "*.10.01" means the 1st of
      * October.
      */
     public boolean isDate(String token) {
@@ -276,10 +279,10 @@ public class DefaultTokenizer implements Tokenizer {
         date = dateFormatNoYear.parse(token, pos);
         return (date != null && pos.getIndex() == token.length());
     }
-    
-    /** 
-     * Returns true iff the token is recognized as a time. 
-     * The default implementation recognizes times in the 
+
+    /**
+     * Returns true iff the token is recognized as a time.
+     * The default implementation recognizes times in the
      * 24-hour format HH:mm, e.g. "00:12" or "15:03".
      */
     public boolean isTime(String token) {
@@ -287,19 +290,19 @@ public class DefaultTokenizer implements Tokenizer {
         Date time = timeFormat.parse(token, pos);
         return (time != null && pos.getIndex() == token.length());
     }
-    
-    /** 
+
+    /**
      * Returns true iff the token is recognized as a number.
-     * The default implementation returns true if the token 
-     * can be parsed as an integer or double, though not one 
+     * The default implementation returns true if the token
+     * can be parsed as an integer or double, though not one
      * in scientific notation.
      */
     public boolean isNum(String token) {
         try {
             Integer.parseInt(token);
-            return true; 
+            return true;
         }
-        catch (NumberFormatException exc) { 
+        catch (NumberFormatException exc) {
             try {
                 Double.parseDouble(token);
                 if (token.indexOf('E') != -1) return false;
@@ -307,19 +310,19 @@ public class DefaultTokenizer implements Tokenizer {
                 return true;
             }
             catch (NumberFormatException exc2) {
-                return false; 
+                return false;
             }
         }
     }
-    
-    /** 
+
+    /**
      * Returns true iff the token is recognized as an amount.
      * The default implementation only handles currency amounts.
-     * The token is recognized as an amount if it begins with 
+     * The token is recognized as an amount if it begins with
      * a number and ends with an ISO-4217 currency code.
      * (See http://www.xe.com/iso4217.htm.)
      */
-    public boolean isAmt(String token) { 
+    public boolean isAmt(String token) {
         if (token.length() < 4) return false;
         String code = token.substring(token.length()-3);
         try { Currency.getInstance(code); }
@@ -337,16 +340,16 @@ public class DefaultTokenizer implements Tokenizer {
         try { datatypeFactory.newDuration(token); return true; }
         catch (Exception exc) { return false; }
     }
-    
-    /** 
-     * Returns true iff the token is recognized as a named entity (not listed in lexicon). 
+
+    /**
+     * Returns true iff the token is recognized as a named entity (not listed in lexicon).
      * The default implementation always returns false.
      */
     public boolean isNamedEntity(String token) {
         return false;
     }
-    
-    
+
+
     /**
      * Returns a string for the given list of words.
      * A space separates the string for each word, as determined by getOrthography(Word,false).
@@ -354,7 +357,7 @@ public class DefaultTokenizer implements Tokenizer {
     public String getOrthography(List<Word> words) {
         return getOrthography(words, false);
     }
-    
+
     /**
      * Returns a string for the given list of words, optionally with semantic class replacement.
      * A space separates the string for each word, as determined by getOrthography(Word,semClassReplacement).
@@ -368,15 +371,15 @@ public class DefaultTokenizer implements Tokenizer {
         }
         return sb.toString();
     }
-    
+
 
     /**
      * Returns a string for the given word, optionally with semantic class replacement.
-     * The default implementation returns the word's form - or semantic class, if apropos - 
-     * followed by its pitch accent (if non-null) separated by an underscore, 
+     * The default implementation returns the word's form - or semantic class, if apropos -
+     * followed by its pitch accent (if non-null) separated by an underscore,
      * followed by any further attribute values, also separated by underscores.
-     * With the semantic class replacement option, the word form is replaced with 
-     * the semantic class, uppercased, if the class is listed as one to replace words with for 
+     * With the semantic class replacement option, the word form is replaced with
+     * the semantic class, uppercased, if the class is listed as one to replace words with for
      * language models.
      */
     public String getOrthography(Word w, boolean semClassReplacement) {
@@ -391,21 +394,21 @@ public class DefaultTokenizer implements Tokenizer {
         for (Iterator<Pair<String,String>> it = w.getAttrValPairs(); it.hasNext(); ) {
             Pair<String,String> p = it.next();
             sb.append("_").append(p.b);
-            
+
         }
         return sb.toString();
     }
-    
+
     /**
-     * Returns a string for the given list of words, 
+     * Returns a string for the given list of words,
      * in the format expected by the SRILM tool for factored language models.
      * A space separates the string for each word, determined by format(Word).
      */
     public String format(List<Word> words) { return format(words, false); }
 
     /**
-     * Returns a string for the given list of words, 
-     * in the format expected by the SRILM tool for factored language models, 
+     * Returns a string for the given list of words,
+     * in the format expected by the SRILM tool for factored language models,
      * optionally with semantic class replacement.
      * A space separates the string for each word, determined by format(Word,boolean).
      */
@@ -421,21 +424,21 @@ public class DefaultTokenizer implements Tokenizer {
         sb.append("</s>");
         return sb.toString();
     }
-    
+
     /**
-     * Returns a string for the given word,  
+     * Returns a string for the given word,
      * in the format expected by the SRILM tool for factored language models.
      * All factors are escaped.
      */
     public String format(Word w) { return format(w, false); }
-    
+
     /**
-     * Returns a string for the given word,  
-     * in the format expected by the SRILM tool for factored language models, 
+     * Returns a string for the given word,
+     * in the format expected by the SRILM tool for factored language models,
      * optionally with semantic class replacement.
      * All factors are escaped.
-     * With the semantic class replacement option, the word form and stem are replaced with 
-     * the semantic class, uppercased, if the class is listed as one to replace words with for 
+     * With the semantic class replacement option, the word form and stem are replaced with
+     * the semantic class, uppercased, if the class is listed as one to replace words with for
      * language models.
      */
     public String format(Word w, boolean semClassReplacement) {
@@ -447,7 +450,7 @@ public class DefaultTokenizer implements Tokenizer {
         String supertag = w.getSupertag();
         String semClass = w.getSemClass();
         if (semClassReplacement && semClass != null && replacementSemClasses.contains(semClass)) {
-            form = escape(semClass.toUpperCase()); stem = form; 
+            form = escape(semClass.toUpperCase()); stem = form;
         }
         sb.append(escape(form));
         if (pitchAccent != null) sb.append(":").append(Tokenizer.PITCH_ACCENT_ATTR).append("-").append(escape(pitchAccent));
@@ -463,11 +466,11 @@ public class DefaultTokenizer implements Tokenizer {
         return sb.toString();
     }
 
-    
+
     /**
-     * Returns an encoding of the given string where 
-     * the characters for ampersand, less-than, greater-than, 
-     * apostrophe, quote, colon and hyphen are escaped 
+     * Returns an encoding of the given string where
+     * the characters for ampersand, less-than, greater-than,
+     * apostrophe, quote, colon and hyphen are escaped
      * using HTML conventions.
      * Null is returned for the null string.
      * An initial substring 'null' is doubled.
@@ -500,15 +503,15 @@ public class DefaultTokenizer implements Tokenizer {
         }
         return (output != null) ? output.toString() : s;
     }
-    
+
     /**
-     * Returns a decoding of the given string where 
-     * the characters for ampersand, less-than, greater-than, 
-     * apostrophe, quote, colon and hyphen (and any other 
-     * character whose code is given numerically) are unescaped 
+     * Returns a decoding of the given string where
+     * the characters for ampersand, less-than, greater-than,
+     * apostrophe, quote, colon and hyphen (and any other
+     * character whose code is given numerically) are unescaped
      * using HTML conventions.
-     * An exception is that ampersands may be left unescaped 
-     * for convenience, when there is no following semicolon 
+     * An exception is that ampersands may be left unescaped
+     * for convenience, when there is no following semicolon
      * in the string.
      * Null is returned for the null string and for the string "null".
      * An initial substring 'nullnull' is halved.
@@ -552,15 +555,15 @@ public class DefaultTokenizer implements Tokenizer {
         return (output != null) ? output.toString() : s;
     }
 
-    
+
     /**
      * Returns one or more orthographic words for the given word's form.
-     * This method is called from within Sign.getWordsInXml as 
+     * This method is called from within Sign.getWordsInXml as
      * part of producing the textual output of realization.
-     * The default implementation checks the semantic class 
-     * for a special token class, and if true, returns the result 
-     * of expandDate, expandTime, expandNum, expandAmt, or 
-     * expandNamedEntity, as appropriate, after first checking that 
+     * The default implementation checks the semantic class
+     * for a special token class, and if true, returns the result
+     * of expandDate, expandTime, expandNum, expandAmt, or
+     * expandNamedEntity, as appropriate, after first checking that
      * the corresponding isDate, ..., isNamedEntity method returns true.
      * Otherwise, it splits the word form using underscore as a delimiter.
      */
@@ -576,11 +579,11 @@ public class DefaultTokenizer implements Tokenizer {
         String[] words = token.split("_");
         return Arrays.asList(words);
     }
-    
+
     /**
      * Returns one or more orthographic words for the given date token.
-     * The default implementation expands the date with 
-     * EnglishExpander.expandDate, using the long option if the year is 
+     * The default implementation expands the date with
+     * EnglishExpander.expandDate, using the long option if the year is
      * present, and the medium option if not.
      */
     public List<String> expandDate(String date) {
@@ -603,10 +606,10 @@ public class DefaultTokenizer implements Tokenizer {
         }
         return retval;
     }
-    
+
     /**
      * Returns one or more orthographic words for the given time token.
-     * The default implementation expands the time using 
+     * The default implementation expands the time using
      * EnglishExpander.expandTime.
      */
     public List<String> expandTime(String time) {
@@ -621,10 +624,10 @@ public class DefaultTokenizer implements Tokenizer {
         }
         return retval;
     }
-    
+
     /**
      * Returns one or more orthographic words for the given number token.
-     * The default implementation expands the number using 
+     * The default implementation expands the number using
      * EnglishExpander.expandNumber.
      */
     public List<String> expandNum(String num) {
@@ -632,10 +635,10 @@ public class DefaultTokenizer implements Tokenizer {
         EnglishExpander.expandNumber(num, retval);
         return retval;
     }
-    
+
     /**
      * Returns one or more orthographic words for the given amount token.
-     * The default implementation expands the number using 
+     * The default implementation expands the number using
      * EnglishExpander.expandAmount.
      */
     public List<String> expandAmt(String amt) {
@@ -645,10 +648,10 @@ public class DefaultTokenizer implements Tokenizer {
         EnglishExpander.expandAmount(num, code, retval);
         return retval;
     }
-    
+
     /**
      * Returns one or more orthographic words for the given duration token.
-     * The default implementation expands the number using 
+     * The default implementation expands the number using
      * EnglishExpander.expandDuration.
      */
     public List<String> expandDur(String dur) {
@@ -663,7 +666,7 @@ public class DefaultTokenizer implements Tokenizer {
         EnglishExpander.expandDuration(duration, retval);
         return retval;
     }
-    
+
     /**
      * Returns one or more orthographic words for the given named entity token.
      * The default implementation just splits the token using underscore as a delimiter.
@@ -672,7 +675,7 @@ public class DefaultTokenizer implements Tokenizer {
         String[] words = namedEntity.split("_");
         return Arrays.asList(words);
     }
-    
+
     /** Test: tokenize args[0], expand each token; and optionally do parseToken(args[1],true). */
     public static void main(String[] args) {
         Tokenizer tk = new DefaultTokenizer();
@@ -699,4 +702,3 @@ public class DefaultTokenizer implements Tokenizer {
         }
     }
 }
-

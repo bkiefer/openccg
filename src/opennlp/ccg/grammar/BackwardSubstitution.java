@@ -23,6 +23,8 @@ import opennlp.ccg.synsem.*;
 
 import java.util.*;
 
+import org.jdom2.Element;
+
 /**
  * Backward substitution, e.g. Y\Z X\Y\Z => X\Z
  *
@@ -67,4 +69,6 @@ public class BackwardSubstitution extends AbstractSubstitutionRule {
 		return sb.toString();
 	}
 
+	@Override
+	public Element toXml() { return super.toXml("backward"); }
 }

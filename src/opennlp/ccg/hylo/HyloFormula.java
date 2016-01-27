@@ -18,11 +18,13 @@
 
 package opennlp.ccg.hylo;
 
+import java.io.Serializable;
+import org.jdom2.*;
+import gnu.trove.map.hash.*;
+import gnu.trove.list.array.*;
+
 import opennlp.ccg.synsem.*;
 import opennlp.ccg.unify.*;
-import org.jdom2.*;
-import gnu.trove.list.array.*;
-import gnu.trove.map.hash.*;
 
 /**
  * A parent class to implement reasonable default behavior for classes

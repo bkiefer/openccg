@@ -41,15 +41,17 @@ public class GroupMap<KeyType,ValType> implements Serializable {
 	private static final long serialVersionUID = -2995356057195571222L;
 
 	// the underlying map
-	private Map map;
+	private Map<KeyType, Object> map;
 
 	/** Default constructor. */
 	public GroupMap() { this(false); }
 
 	/** Constructor with flag for whether to use identity instead of <code>equals</code> on keys. */
 	public GroupMap(boolean useIdentityEquals) {
-		if (useIdentityEquals) map = new TCustomHashMap(new IdentityHashingStrategy());
-		else map = new THashMap();
+		if (useIdentityEquals)
+		  map = new TCustomHashMap<KeyType,Object>(new IdentityHashingStrategy<KeyType>());
+		else
+		  map = new THashMap<KeyType,Object>();
 	}
 
     /** Adds the given key-value pair to the map, and returns null. */
@@ -68,7 +70,7 @@ public class GroupMap<KeyType,ValType> implements Serializable {
         }
         // otherwise replace with a set including both values
         else {
-            Set<ValType> set = new THashSet();
+            Set<ValType> set = new THashSet<ValType>();
             set.add((ValType)currentVal);
             set.add(value);
             map.put(key, set);
@@ -79,7 +81,7 @@ public class GroupMap<KeyType,ValType> implements Serializable {
 
     /** Returns the set of values for the given key (or null). */
     @SuppressWarnings("unchecked")
-	public Set<ValType> get(KeyType key) {
+	  public Set<ValType> get(KeyType key) {
         // get val
         Object val = map.get(key);
         // return if null or already a set
@@ -87,7 +89,7 @@ public class GroupMap<KeyType,ValType> implements Serializable {
             return (Set<ValType>) val;
         }
         // otherwise replace val with a set and return it
-        Set<ValType> set = new THashSet();
+        Set<ValType> set = new THashSet<ValType>();
         set.add((ValType)val);
         map.put(key, set);
         return set;
@@ -103,8 +105,8 @@ public class GroupMap<KeyType,ValType> implements Serializable {
     public int size() { return map.size(); }
 
     /** Returns the keys. */
-    @SuppressWarnings("unchecked")
-	public Set<KeyType> keySet() {
+
+	  public Set<KeyType> keySet() {
     	return (Set<KeyType>) map.keySet();
     }
 

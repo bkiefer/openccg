@@ -145,7 +145,7 @@ public class TextCCG {
         System.out.println();
 
         // create parser and realizer
-        IncrCKYParser parser = new IncrCKYParser(grammar);
+        Parser parser = new Parser(grammar);
         Realizer realizer = new Realizer(grammar);
         IncrCKYParser incrparser = new IncrCKYParser(grammar);
 
@@ -760,6 +760,18 @@ public class TextCCG {
         System.out.println("  :poff\t\t\tturn packing off");
 
         System.out.println();
+
+        System.out.println("  :scoring\t\tturn chart scoring on");
+        System.out.println("  :noscoring\t\tturn chart scoring off");
+        System.out.println("  :asrcorrection\tturn ASR correction rules on");
+        System.out.println("  :noasrcorrection\tturn ASR correction rules off");
+        System.out.println("  :disclevelcomp\tturn discourse level composition rules on");
+        System.out.println("  :nodisclevelcomp\tturn discourse level composition rules off");
+        System.out.println("  :showtiming\t\tshow timing information");
+        System.out.println("  :noshowtiming\t\tdo not show timing information");
+
+        System.out.println();
+
         System.out.println("  :q\t\t\tquit tccg");
         System.out.println("  :h\t\t\tshow this message");
         System.out.println();

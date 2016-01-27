@@ -52,7 +52,7 @@ public class BackwardApplication extends AbstractApplicationRule {
 		return apply(inputs[1], inputs[0]);
     }
 
-
+    @Override
     public String toString() {
       return "Y X"+_functorSlash.toString()+"Y => X";
     }

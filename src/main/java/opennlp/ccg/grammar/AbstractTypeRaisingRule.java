@@ -185,6 +185,7 @@ public abstract class AbstractTypeRaisingRule extends AbstractRule {
         return results;
     }
 
+    @Override
     public String toString() {
       StringBuffer sb = new StringBuffer();
       sb.append("X => Y").append(_upperSlash.toString()).append("(Y")

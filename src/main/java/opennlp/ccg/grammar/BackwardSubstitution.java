@@ -33,6 +33,8 @@ import org.jdom2.Element;
  */
 public class BackwardSubstitution extends AbstractSubstitutionRule {
 
+  private static final long serialVersionUID = -4597839433754132265L;
+
 	public BackwardSubstitution() {
 		this(true);
 	}

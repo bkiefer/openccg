@@ -161,5 +161,13 @@ public abstract class AbstractTypeRaisingRule extends AbstractRule {
         _headCats.add(input);
         return results;
     }
+
+    @Override
+    public String toString() {
+        StringBuffer sb = new StringBuffer();
+        sb.append("X => Y").append(_upperSlash.toString()).append("(Y")
+          .append(_embeddedSlash.toString()).append("X)");
+        return sb.toString();
+    }
 }
 

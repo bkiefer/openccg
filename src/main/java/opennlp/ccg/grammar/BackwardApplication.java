@@ -48,11 +48,13 @@ public class BackwardApplication extends AbstractApplicationRule {
 		if (inputs.length != 2) {
 		    throw new UnifyFailure();
 		}
+
 		return apply(inputs[1], inputs[0]);
     }
 
+    @Override
     public String toString() {
-		return "Y X\\Y => X";
+      return "Y X"+_functorSlash.toString()+"Y => X";
     }
-}
 
+}

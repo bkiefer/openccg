@@ -1,16 +1,16 @@
 //////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2012 Scott Martin
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -21,7 +21,7 @@ package opennlp.ccg.util;
 /**
  * Abstract class for filters that delegates to another filter that tests elements that do not
  * necessarily apply to the same type of elements as this filter. This filter's
- * {@link #allows(Object)} method returns the value of the 
+ * {@link #allows(Object)} method returns the value of the
  * {@linkplain #getDelegateFilter() delegate filter}'s <tt>allows(...)</tt> method
  * for the value returned by {@link #delegateValueFor(Object)} for the specified
  * element.
@@ -32,16 +32,16 @@ package opennlp.ccg.util;
  * A typical example is the case when a filter is desired that compares elements of type <tt>E</tt>, but
  * the comparison needs to take place on some type-<tt>D</tt> object somehow derived from instances of
  * <tt>E</tt>, e.g. by an accessor method.
- * 
+ *
  * @param <E> The type of elements that this filter applies to.
  * @param <D> The type of elements that the delegated filter applies to.
- * 
+ *
  * @author <a href="http://www.ling.ohio-state.edu/~scott/">Scott Martin</a>
  */
 public abstract class DelegatedFilter<E, D> implements Filter<E> {
 
 	Filter<? super D> delegateFilter;
-	
+
 	/**
 	 * Creates a delegated filter with the specified filter to delegate to. The delegated filter will be
 	 * used in the test for {@link #allows(Object)}, through the {@link #delegateValueFor(Object)}.
@@ -67,7 +67,6 @@ public abstract class DelegatedFilter<E, D> implements Filter<E> {
 	 * for the element returned by <tt>delegateValueFor(e)</tt>.
 	 * @see #delegateValueFor(Object)
 	 */
-	@Override
 	public boolean allows(E e) {
 		return delegateFilter.allows(delegateValueFor(e));
 	}

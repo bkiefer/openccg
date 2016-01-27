@@ -14,23 +14,22 @@ public class FilteredSetTest {
 
 	FilteredSet<String> testSet, sameSet;
 	List<String> values;
-	
+
 	Filter<String> testFilter, sameFilter;
-	
+
 	@Before
 	public void setUp() throws Exception {
 		values = new ArrayList<String>(Arrays.asList("test", "test", "other", "different"));
-		
+
 		testFilter = new Filter<String>() {
-			
-			@Override
+
 			public boolean allows(String e) {
 				return e.equals("test");
 			}
 		};
-		
+
 		sameFilter = new VisitedFilter<String>();
-		
+
 		testSet = new FilteredSet<String>(values, testFilter);
 		sameSet = new FilteredSet<String>(values, sameFilter);
 	}
@@ -45,7 +44,7 @@ public class FilteredSetTest {
 			// do nothing
 		}
 	}
-	
+
 	@Test
 	public void testSize() {
 		assertEquals(1, testSet.size());
@@ -58,7 +57,7 @@ public class FilteredSetTest {
 		assertFalse(testSet.add("test"));
 		assertTrue(testSet.remove("test"));
 		assertEquals(sz - 1, testSet.size());
-		
+
 		assertFalse(sameSet.add("test"));
 		assertTrue(sameSet.add("blah"));
 		assertTrue(sameSet.add("xyxyx"));
@@ -72,13 +71,13 @@ public class FilteredSetTest {
 		assertTrue(i.hasNext());
 		assertEquals("test", i.next());
 		assertFalse(i.hasNext());
-		
+
 		i = sameSet.iterator();
 		assertTrue(i.hasNext());
 		assertEquals("test", i.next());
 		assertEquals("other", i.next());
 		assertEquals("different", i.next());
-		
+
 		i = sameSet.iterator();
 		assertEquals("test", i.next());
 		i.remove();
@@ -89,7 +88,7 @@ public class FilteredSetTest {
 	public void testRemove() {
 		testSet.remove("test");
 		assertFalse(testSet.contains("test"));
-		
+
 		sameSet.remove("test");
 		assertFalse(sameSet.contains("test"));
 	}
@@ -101,7 +100,7 @@ public class FilteredSetTest {
 		sameSet.clear();
 		assertEquals(0, sameSet.size());
 	}
-	
+
 	@Test
 	public void testGetOriginalCollection() {
 		assertEquals(values, testSet.getOriginalCollection());

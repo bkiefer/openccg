@@ -1,16 +1,16 @@
 //////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2012 Scott Martin
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License, or (at your option) any later version.
-// 
+//
 // This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -36,17 +36,17 @@ import opennlp.ccg.hylo.graph.LFVertex;
 /**
  * A filter that matches vertices based on a basis vertex and a set of match type criteria.
  * <p>
- * Instances of this class use the following match types: {@link MatchType#SOURCE_MATCH}, 
+ * Instances of this class use the following match types: {@link MatchType#SOURCE_MATCH},
  * {@link MatchType#SOURCE_MISMATCH}, {@link MatchType#TARGET_MATCH}, {@link MatchType#TARGET_MISMATCH},
  * {@link MatchType#SOURCE_PREDICATE_MATCH}, {@link MatchType#SOURCE_PREDICATE_MISMATCH},
  * {@link MatchType#TARGET_PREDICATE_MATCH}, {@link MatchType#TARGET_PREDICATE_MISMATCH}.
- * 
+ *
  * @author <a href="http://www.ling.ohio-state.edu/~scott/">Scott Martin</a>
  */
 public class VertexMatchFilter extends MatchTypeFilter {
 
 	LFVertex basis;
-	
+
 	/**
 	 * Creates a new vertex match filter using the specified vertex as a basis for comparison and the
 	 * specified match type criteria.
@@ -55,11 +55,11 @@ public class VertexMatchFilter extends MatchTypeFilter {
 	 */
 	public VertexMatchFilter(LFVertex basis, MatchType... matchTypes) {
 		super(matchTypes);
-		
+
 		checkBasis(basis);
 		this.basis = basis;
 	}
-		
+
 	/**
 	 * Creates a new vertex match filter using the specified vertex as a basis for comparison and the
 	 * specified match type criteria.
@@ -69,7 +69,7 @@ public class VertexMatchFilter extends MatchTypeFilter {
 	 */
 	public VertexMatchFilter(LFVertex basis, Collection<MatchType> matchTypes) {
 		super(matchTypes);
-		
+
 		checkBasis(basis);
 		this.basis = basis;
 	}
@@ -79,7 +79,7 @@ public class VertexMatchFilter extends MatchTypeFilter {
 			throw new IllegalArgumentException("basis is null");
 		}
 	}
-	
+
 	/**
 	 * Gets the vertex that is the basis for comparison in this filter's {@link #allows(LFEdge)} method.
 	 */
@@ -106,18 +106,17 @@ public class VertexMatchFilter extends MatchTypeFilter {
 	 * 	<li>{@link MatchType#SOURCE_MISMATCH}, but the basis edge is equal to the edge's source,</li>
 	 * 	<li>{@link MatchType#TARGET_MATCH}, but the basis edge does not equal the edge's target,</li>
 	 * 	<li>{@link MatchType#TARGET_MISMATCH}, but the basis edge is equal to the edge's target,</li>
-	 * 	<li>{@link MatchType#SOURCE_PREDICATE_MATCH}, but the basis edge's predicate does not equal the 
+	 * 	<li>{@link MatchType#SOURCE_PREDICATE_MATCH}, but the basis edge's predicate does not equal the
 	 * 		edge's source vertex's predicate,</li>
-	 * 	<li>{@link MatchType#SOURCE_PREDICATE_MISMATCH}, but the basis edge's predicate is equal to the 
+	 * 	<li>{@link MatchType#SOURCE_PREDICATE_MISMATCH}, but the basis edge's predicate is equal to the
 	 * 		edge's source vertex's predicate,</li>
-	 * 	<li>{@link MatchType#TARGET_PREDICATE_MATCH}, but the basis edge's predicate does not equal the 
+	 * 	<li>{@link MatchType#TARGET_PREDICATE_MATCH}, but the basis edge's predicate does not equal the
 	 * 		edge's target vertex's predicate,</li>
-	 * 	<li>{@link MatchType#TARGET_PREDICATE_MISMATCH}, but the basis edge's predicate is equal to the 
+	 * 	<li>{@link MatchType#TARGET_PREDICATE_MISMATCH}, but the basis edge's predicate is equal to the
 	 * 		edge's target vertex's predicate,</li>
 	 * </ul>
 	 * and <tt>true</tt> otherwise.
 	 */
-	@Override
 	public boolean allows(LFEdge edge) {
 		for(MatchType t : matchTypes) {
 			if(t == SOURCE_MATCH && !basis.equals(edge.getSource())) {
@@ -133,25 +132,25 @@ public class VertexMatchFilter extends MatchTypeFilter {
 				return false;
 			}
 			else if(basis.getPredicate() != null) {
-				if(t == SOURCE_PREDICATE_MATCH 
+				if(t == SOURCE_PREDICATE_MATCH
 						&& !basis.getPredicate().equals(edge.getSource().getPredicate())) {
 					return false;
 				}
-				else if(t == SOURCE_PREDICATE_MISMATCH 
+				else if(t == SOURCE_PREDICATE_MISMATCH
 						&& basis.getPredicate().equals(edge.getSource().getPredicate())) {
 					return false;
 				}
-				else if(t == TARGET_PREDICATE_MATCH 
+				else if(t == TARGET_PREDICATE_MATCH
 						&& !basis.getPredicate().equals(edge.getTarget().getPredicate())) {
 					return false;
 				}
-				else if(t == TARGET_PREDICATE_MISMATCH 
+				else if(t == TARGET_PREDICATE_MISMATCH
 						&& basis.getPredicate().equals(edge.getTarget().getPredicate())) {
 					return false;
 				}
 			}
 		}
-		
+
 		return true;
 	}
 

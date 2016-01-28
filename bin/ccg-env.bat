@@ -4,16 +4,17 @@ rem sets OpenCCG environment variables
 if not exist "%JAVA_HOME%" goto no_JAVA_HOME
 if not exist "%OPENCCG_HOME%" goto no_OPENCCG_HOME
 
-set OPENCCG_LIB=%OPENCCG_HOME%\lib
-set DIRLIBS=%OPENCCG_LIB%\trove.jar;%OPENCCG_LIB%\jdom.jar;%OPENCCG_LIB%\jline.jar;%OPENCCG_LIB%\jopt-simple.jar
-set XMLLIBS=%OPENCCG_LIB%\xml-apis.jar;%OPENCCG_LIB%\xercesImpl.jar;%OPENCCG_LIB%\xalan.jar
-set OPENCCG_SRC=%OPENCCG_HOME%\src
-set OPENCCG_CLASSES=%OPENCCG_HOME%\output\classes
-set OPENCCG_JAR=%OPENCCG_HOME%\lib\openccg.jar
+rem set OPENCCG_LIB=%OPENCCG_HOME%\lib
+rem set DIRLIBS=%OPENCCG_LIB%\trove.jar;%OPENCCG_LIB%\jdom.jar;%OPENCCG_LIB%\jline.jar;%OPENCCG_LIB%\jopt-simple.jar
+rem set XMLLIBS=%OPENCCG_LIB%\xml-apis.jar;%OPENCCG_LIB%\xercesImpl.jar;%OPENCCG_LIB%\xalan.jar
+rem set OPENCCG_SRC=%OPENCCG_HOME%\src
+rem set OPENCCG_CLASSES=%OPENCCG_HOME%\output\classes
+rem set OPENCCG_JAR=%OPENCCG_HOME%\lib\openccg.jar
 rem variant without XMLLIBS
 rem set CP=%OPENCCG_JAR%;%DIRLIBS%;.
 rem variant with XMLLIBS
-set CP=%OPENCCG_JAR%;%DIRLIBS%;%XMLLIBS%;.
+set CP=%OPENCCG_HOME%\target\openccg.jar
+rem ;%DIRLIBS%;%XMLLIBS%;.
 rem variant for use with 'build compile' option, if desired:
 rem set CP=%OPENCCG_CLASSES%;%OPENCCG_SRC%;%DIRLIBS%
 set JAVA="%JAVA_HOME%\bin\java"

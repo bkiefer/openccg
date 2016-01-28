@@ -4,7 +4,7 @@
 
   <groupId>de.dfki.mlt</groupId>
   <artifactId>openccg</artifactId>
-  <version>0.9.7</version>
+  <version>0.9.7-dfki-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>OpenCCG</name>
@@ -91,6 +91,44 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>opennlp.ccg.TextCCG.main</mainClass>
+            </manifest>
+          </archive>
+          <finalName>openccg</finalName>
+          <appendAssemblyId>false</appendAssemblyId>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.3</version>
+        <configuration>
+          <destDir>docs/api</destDir>
+          <author>true</author>
+          <version>true</version>
+          <use>true</use>
+          <splitindex>true</splitindex>
+          <noindex>false</noindex>
+          <windowtitle>${project.name}</windowtitle>
+          <doctitle>The OpenCCG API v${project.version}</doctitle>
+          <bottom>Copyright &#169; ${year} Jason Baldridge, Gann Bierner, Michael White and additional contributors. All Rights Reserved.</bottom>
+          <!--<sourcepath>
+              <pathelement path="${src.dir}"/>
+	      <pathelement path="${build.gen}"/>
+              </sourcepath>-->
+          <detectLinks>true</detectLinks>
+        </configuration>
       </plugin>
     </plugins>
   </build>

@@ -6,7 +6,7 @@
 #
 # Usage: ccg-grammardoc [-s|--source sourceDir] [-d|--dest destDir]
 #
-. ccg-env
+. `dirname $0`/ccg-env
 ANT_HOME="$OPENCCG_HOME/lib"
 case `uname` in
   CYGWIN* ) CP="$CP;$ANT_HOME/ant.jar"

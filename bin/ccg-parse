@@ -1,5 +1,4 @@
 #!/bin/sh
 # Usage: ccg-parse -h
-. ccg-env
+. `dirname $0`/ccg-env
 "$JAVA" $JAVA_ARGS opennlp.ccg.Parse $@
-

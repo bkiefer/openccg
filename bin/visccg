@@ -1,3 +1,4 @@
 #!/bin/sh
-
+OPENCCG_HOME="`dirname $0`/.."
+export OPENCCG_HOME
 python "$OPENCCG_HOME/bin/ccg_editor.py" "$@"

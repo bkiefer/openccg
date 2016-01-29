@@ -4,3 +4,4 @@ scriptdir=`dirname $0`
 
 cd "$scriptdir"/..
 mvn clean compile assembly:single -DskipTests=true
+ant -f build-stripped.xml

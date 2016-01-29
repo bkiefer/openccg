@@ -54,15 +54,21 @@
     </dependency>
 
     <dependency>
-      <groupId>org.jgrapht</groupId>
-      <artifactId>jgrapht-core</artifactId>
-      <version>0.9.1</version>
+      <groupId>net.sf.jgrapht</groupId>
+      <artifactId>jgrapht</artifactId>
+      <version>0.8.3</version>
     </dependency>
 
     <dependency>
       <groupId>xalan</groupId>
       <artifactId>xalan</artifactId>
       <version>2.7.2</version>
+    </dependency>
+
+    <dependency>
+      <groupId>xerces</groupId>
+      <artifactId>xercesImpl</artifactId>
+      <version>2.11.0</version>
     </dependency>
 
     <dependency>
@@ -107,7 +113,7 @@
         <version>2.7</version>
         <executions>
           <execution>
-            <id>copy-resources</id>
+            <id>copy-resources-doc</id>
             <!-- here the phase you need -->
             <phase>install</phase>
             <goals>
@@ -119,6 +125,45 @@
                 <resource>
                   <directory>src/main/java/opennlp/ccg/grammardoc/html</directory>
                   <excludes><exclude>*.java</exclude></excludes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>copy-resources-convert</id>
+            <!-- here the phase you need -->
+            <phase>install</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/opennlp/ccg/grammar</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/java/opennlp/ccg/grammar</directory>
+                  <includes><include>*.xsl</include></includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>copy-resources-ccgbank</id>
+            <!-- here the phase you need -->
+            <phase>install</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/opennlp/ccgbank</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/java/opennlp/ccgbank</directory>
+                  <includes>
+                    <include>*.properties</include>
+                    <include>*.xsl</include>
+                  </includes>
                 </resource>
               </resources>
             </configuration>

@@ -7,13 +7,12 @@
 # Usage: ccg-grammardoc [-s|--source sourceDir] [-d|--dest destDir]
 #
 . `dirname $0`/ccg-env
-ANT_HOME="$OPENCCG_HOME/lib"
-case `uname` in
-  CYGWIN* ) CP="$CP;$ANT_HOME/ant.jar"
-  ;;
-  * ) CP="$CP:$ANT_HOME/ant.jar"
-  ;;
-esac
+# ANT_HOME="$OPENCCG_HOME/lib"
+# case `uname` in
+#   CYGWIN* ) CP="$CP;$ANT_HOME/ant.jar"
+#   ;;
+#   * ) CP="$CP:$ANT_HOME/ant.jar"
+#   ;;
+# esac
 JAVA_ARGS="-Xmx128m -classpath $CP"
 "$JAVA" $JAVA_ARGS opennlp.ccg.grammardoc.GrammarDoc $@
-

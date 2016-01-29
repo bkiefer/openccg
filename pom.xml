@@ -74,6 +74,15 @@
 
   </dependencies>
   <build>
+    <!--
+    <resources>
+      <outputDirectory>opennlp/ccg/grammardoc/html</outputDirectory>
+      <resource>
+        <directory>src/main/java/opennlp/ccg/grammardoc/html</directory>
+        <excludes><exclude>*.java</exclude></excludes>
+      </resource>
+    </resources>
+-->
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -88,6 +97,30 @@
             <configuration>
               <sourceDirectory>src/main/java</sourceDirectory>
               <!--<outputDirectory>src/main/gen-java</outputDirectory>-->
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.7</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <!-- here the phase you need -->
+            <phase>install</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/opennlp/ccg/grammardoc/html</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/java/opennlp/ccg/grammardoc/html</directory>
+                  <excludes><exclude>*.java</exclude></excludes>
+                </resource>
+              </resources>
             </configuration>
           </execution>
         </executions>

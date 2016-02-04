@@ -1,3 +1,2 @@
 #!/bin/sh
-
-python "$OPENCCG_HOME/bin/dlf_parser.py" "$@"
+python "`dirname $0`/dlf_parser.py" "$@"

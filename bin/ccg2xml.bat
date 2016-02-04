@@ -1,2 +1,2 @@
 @echo off
-python %OPENCCG_HOME%/bin/ccg2xml.py %*
+python %~dp0\ccg2xml.py %*

@@ -1,3 +1,2 @@
 #!/bin/sh
-
-python "$OPENCCG_HOME/bin/ccg_draw_tree.py" "$@"
+python "`dirname $0`/ccg_draw_tree.py" "$@"

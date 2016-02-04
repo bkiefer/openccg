@@ -1,2 +1,2 @@
 @echo off
-python %OPENCCG_HOME%/bin/dlf_parser.py %*
+python %~dp0\dlf_parser.py %*

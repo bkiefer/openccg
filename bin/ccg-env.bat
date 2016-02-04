@@ -1,45 +1,12 @@
 @echo off
 rem sets OpenCCG environment variables
 
-if not exist "%JAVA_HOME%" goto no_JAVA_HOME
-if not exist "%OPENCCG_HOME%" goto no_OPENCCG_HOME
-
-rem set OPENCCG_LIB=%OPENCCG_HOME%\lib
-rem set DIRLIBS=%OPENCCG_LIB%\trove.jar;%OPENCCG_LIB%\jdom.jar;%OPENCCG_LIB%\jline.jar;%OPENCCG_LIB%\jopt-simple.jar
-rem set XMLLIBS=%OPENCCG_LIB%\xml-apis.jar;%OPENCCG_LIB%\xercesImpl.jar;%OPENCCG_LIB%\xalan.jar
-rem set OPENCCG_SRC=%OPENCCG_HOME%\src
-rem set OPENCCG_CLASSES=%OPENCCG_HOME%\output\classes
-rem set OPENCCG_JAR=%OPENCCG_HOME%\lib\openccg.jar
-rem variant without XMLLIBS
-rem set CP=%OPENCCG_JAR%;%DIRLIBS%;.
-rem variant with XMLLIBS
-set CP=%OPENCCG_HOME%\target\openccg.jar
-rem ;%DIRLIBS%;%XMLLIBS%;.
+set CP="%~dp0\..\target\openccg.jar"
 rem variant for use with 'build compile' option, if desired:
 rem set CP=%OPENCCG_CLASSES%;%OPENCCG_SRC%;%DIRLIBS%
-set JAVA="%JAVA_HOME%\bin\java"
+set JAVA="java"
 set JAVA_MEM=-Xmx256m
 rem set JAVA_MEM=-Xmx2048m
+rem set JAVA_MEM="-Xmx8g"
+rem set JAVA_MEM="-Xmx16g"
 set JAVA_CMD=%JAVA% %JAVA_MEM% -classpath %CP% -Dfile.encoding=UTF8
-
-goto end
-
-:no_JAVA_HOME
-echo.
-echo Error: JAVA_HOME not found in your environment.
-echo.
-echo Please set the JAVA_HOME variable in your environment to match the
-echo location of the Java Virtual Machine you want to use.
-echo.
-exit /b 1
-
-:no_OPENCCG_HOME
-echo.
-echo Error: OPENCCG_HOME not found in your environment.
-echo.
-echo Please set the OPENCCG_HOME variable in your environment to match the
-echo location of your OpenNLP CCG Library distribution.
-echo.
-exit /b 1
-
-:end

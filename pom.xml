@@ -4,7 +4,7 @@
 
   <groupId>de.dfki.mlt</groupId>
   <artifactId>openccg</artifactId>
-  <version>0.9.7-dfki-SNAPSHOT</version>
+  <version>dfki-0.9.7</version>
   <packaging>jar</packaging>
 
   <name>OpenCCG</name>

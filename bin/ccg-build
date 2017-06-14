@@ -3,5 +3,5 @@ scriptdir=`dirname $0`
 . "$scriptdir"/ccg-env
 
 cd "$scriptdir"/..
-mvn clean install assembly:single -DskipTests=true
+mvn clean install -DskipTests=true
 ant -f build-stripped.xml

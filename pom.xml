@@ -143,7 +143,7 @@
           <execution>
             <id>copy-resources-doc</id>
             <!-- here the phase you need -->
-            <phase>install</phase>
+            <phase>package</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
@@ -161,7 +161,7 @@
           <execution>
             <id>copy-resources-convert</id>
             <!-- here the phase you need -->
-            <phase>install</phase>
+            <phase>package</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
@@ -179,7 +179,7 @@
           <execution>
             <id>copy-resources-ccgbank</id>
             <!-- here the phase you need -->
-            <phase>install</phase>
+            <phase>package</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
@@ -236,9 +236,9 @@
           <detectLinks>true</detectLinks>
         </configuration>
       </plugin>
-
+      <!--
       <plugin>
-        <!-- explicitly define maven-deploy-plugin after other to force exec order -->
+        - explicitly define maven-deploy-plugin after other to force exec order -
         <artifactId>maven-deploy-plugin</artifactId>
         <version>2.8.2</version>
         <executions>
@@ -250,7 +250,7 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
+      </plugin>-->
     </plugins>
   </build>
 

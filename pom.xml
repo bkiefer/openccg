@@ -121,7 +121,7 @@
           <execution>
             <id>copy-resources-doc</id>
             <!-- here the phase you need -->
-            <phase>package</phase>
+            <phase>compile</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
@@ -139,7 +139,7 @@
           <execution>
             <id>copy-resources-convert</id>
             <!-- here the phase you need -->
-            <phase>package</phase>
+            <phase>compile</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
@@ -157,7 +157,7 @@
           <execution>
             <id>copy-resources-ccgbank</id>
             <!-- here the phase you need -->
-            <phase>package</phase>
+            <phase>compile</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>

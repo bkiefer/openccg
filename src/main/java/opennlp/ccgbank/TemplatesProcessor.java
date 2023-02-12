@@ -107,7 +107,7 @@ class TemplatesProcessor extends XSLTProcessor {
 				// get and configure transformer for this template
 				Templates template = i.next();
 				Transformer transformer = template.newTransformer();
-				transformer.setOutputProperties(xmlProperties);
+				//transformer.setOutputProperties(xmlProperties);
 				transformer.setErrorListener(errorListener);
 				
 				boolean ihn = i.hasNext(); // reuse
@@ -116,8 +116,8 @@ class TemplatesProcessor extends XSLTProcessor {
 					? new StreamResult(buffer)
 					// if it's the last, write output to file
 					: new StreamResult(new BufferedOutputStream(
-							serializer.getOutputStream()));
 										
+							serializer.getByteStream()));
 				transformer.transform(source, result);
 				
 				if(ihn) {

@@ -24,7 +24,8 @@ package opennlp.ccgbank;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.Templates;
@@ -33,10 +34,12 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.sax.SAXTransformerFactory;
 
 import org.apache.tools.ant.BuildException;
+import org.xml.sax.ContentHandler;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
+import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 
@@ -81,7 +84,8 @@ class XMLFilterProcessor extends XSLTProcessor {
 		// TODO figure out how to re-use filter without breaking :(
 		// make new filter each time
 		filter = makeFilter(taskTemplatesList);
-		filter.setContentHandler(serializer.asContentHandler());
+		ContentHandler h = new DefaultHandler();
+		filter.setContentHandler(h);
 		filter.parse(inputSource);
 	}
 	

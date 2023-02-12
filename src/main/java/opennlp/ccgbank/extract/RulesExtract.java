@@ -36,21 +36,23 @@ import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import opennlp.ccgbank.extract.ExtractGrammar.ExtractionProperties;
-
-import org.apache.xml.serializer.OutputPropertiesFactory;
-import org.apache.xml.serializer.Serializer;
-import org.apache.xml.serializer.SerializerFactory;
 import org.jdom2.JDOMException;
+import org.w3c.dom.bootstrap.DOMImplementationRegistry;
+import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSOutput;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
+
+import opennlp.ccgbank.extract.ExtractGrammar.ExtractionProperties;
 
 public class RulesExtract {
 
-	public static void extractRules(ExtractionProperties extractProps) throws TransformerException, TransformerConfigurationException,SAXException, IOException,JDOMException{
+	public static void extractRules(ExtractionProperties extractProps)
+	    throws TransformerException, TransformerConfigurationException,SAXException, IOException,JDOMException, ClassNotFoundException, InstantiationException, IllegalAccessException, ClassCastException{
 
 		System.out.println("Extracting rule info:");
 
@@ -123,16 +125,16 @@ public class RulesExtract {
 			// xmlFilter1 uses the XMLReader as its reader.
 			xmlFilter1.setParent(reader);
 
-			java.util.Properties xmlProps = OutputPropertiesFactory.getDefaultMethodProperties("xml");
-			xmlProps.setProperty("indent", "yes");
-			xmlProps.setProperty("standalone", "no");
-			xmlProps.setProperty("{http://xml.apache.org/xalan}indent-amount", "2");
-			Serializer serializer = SerializerFactory.getSerializer(xmlProps);
-			serializer.setOutputStream(new FileOutputStream(rulesFile));
-
+            DOMImplementationRegistry registry =
+                DOMImplementationRegistry.newInstance();
+            DOMImplementationLS domImplementationLS =
+                (DOMImplementationLS) registry.getDOMImplementation("LS");
+            LSOutput serializer =  domImplementationLS.createLSOutput();
+            serializer.setEncoding("UTF-8");
+            serializer.setByteStream(new FileOutputStream(rulesFile));
 
 			XMLFilter xmlFilter = xmlFilter1;
-			xmlFilter.setContentHandler(serializer.asContentHandler());
+			xmlFilter.setContentHandler(new DefaultHandler());
 			xmlFilter.parse(new InputSource(tempFile.getPath()));
 		}
 

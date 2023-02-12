@@ -23,19 +23,18 @@
 package opennlp.ccgbank;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 
 import javax.xml.transform.ErrorListener;
-import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Templates;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -46,9 +45,9 @@ import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.tools.ant.BuildException;
-import org.apache.xml.serializer.OutputPropertiesFactory;
-import org.apache.xml.serializer.Serializer;
-import org.apache.xml.serializer.SerializerFactory;
+import org.w3c.dom.bootstrap.DOMImplementationRegistry;
+import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSOutput;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -64,25 +63,38 @@ import org.xml.sax.SAXException;
 abstract class XSLTProcessor {
 	
 	SAXTransformerFactory transformerFactory = newTransformerFactory();
-	
-	static final Properties xmlProperties
-		= OutputPropertiesFactory.getDefaultMethodProperties("xml");
-	
-	static {
-		xmlProperties.setProperty(OutputKeys.INDENT, "yes");
-		xmlProperties.setProperty(
-				"{http://xml.apache.org/xalan}indent-amount", "2");
-	}
-	
+
 	List<CCGBankTaskTemplates> taskTemplatesList
 		= new ArrayList<CCGBankTaskTemplates>();
-	Serializer serializer = SerializerFactory.getSerializer(
-			XSLTProcessor.xmlProperties);
-	ErrorListener errorListener;	
-	
+
+	DOMImplementationLS domImplementationLS;
+	LSOutput serializer;
+
+	ErrorListener errorListener;
+
 	XSLTProcessor(ErrorListener errorListener) {
 		this.errorListener = errorListener;
 		transformerFactory.setErrorListener(errorListener);
+		try {
+		  DOMImplementationRegistry registry =
+		      DOMImplementationRegistry.newInstance();
+		  domImplementationLS =
+		      (DOMImplementationLS) registry.getDOMImplementation("LS");
+		  serializer =  domImplementationLS.createLSOutput();
+		  serializer.setEncoding("UTF-8");
+		} catch (ClassNotFoundException e) {
+		  // TODO Auto-generated catch block
+		  e.printStackTrace();
+		} catch (InstantiationException e) {
+		  // TODO Auto-generated catch block
+		  e.printStackTrace();
+		} catch (IllegalAccessException e) {
+		  // TODO Auto-generated catch block
+		  e.printStackTrace();
+		} catch (ClassCastException e) {
+		  // TODO Auto-generated catch block
+		  e.printStackTrace();
+		}
 	}
 	
 	boolean addAllTemplates(List<CCGBankTaskTemplates> templateList) {
@@ -115,23 +127,18 @@ abstract class XSLTProcessor {
 	 */
 	abstract void process(InputSource inputSource)
 		throws IOException,SAXException,TransformerException;
-	
-	void setTarget(File file) throws FileNotFoundException {
-		serializer.setOutputStream(
-			new BufferedOutputStream(new FileOutputStream(file)));
-		// ensure output properties set (shouldn't really be nec!)
-		serializer.setOutputFormat(xmlProperties);
+
+	void setTarget(File file) throws IOException {
+	  Writer stringWriter = new BufferedWriter(new FileWriter(file));
+      serializer.setCharacterStream(stringWriter);
 	}
-	
+
 	/**
-	 * Resets the serializer, if resetting is possible. If not, re-creates the
-	 * serializer.
+	 * re-creates the serializer.
 	 */
 	void resetSerializer() {
-		if(!serializer.reset()) {
-	    	serializer // create new unless re-useable
-	    		= SerializerFactory.getSerializer(xmlProperties);
-	    }
+	  serializer =  domImplementationLS.createLSOutput();
+      serializer.setEncoding("UTF-8");
 	}
 	
 	SAXTransformerFactory newTransformerFactory() {

@@ -32,23 +32,24 @@ import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.sax.SAXTransformerFactory;
 
-import opennlp.ccgbank.extract.ExtractGrammar.ExtractionProperties;
-
-import org.apache.xml.serializer.OutputPropertiesFactory;
-import org.apache.xml.serializer.Serializer;
-import org.apache.xml.serializer.SerializerFactory;
 import org.jdom2.JDOMException;
+import org.w3c.dom.bootstrap.DOMImplementationRegistry;
+import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSOutput;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
+
+import opennlp.ccgbank.extract.ExtractGrammar.ExtractionProperties;
 
 public class MorphExtract {
 
 	public static void extractMorph(ExtractionProperties extractProps)
 			throws TransformerException, TransformerConfigurationException,
-			SAXException, IOException, JDOMException {
+			SAXException, IOException, JDOMException, ClassNotFoundException, InstantiationException, IllegalAccessException, ClassCastException {
 
 		System.out.println("Extracting morph:");
 		System.out.println("Generating morph.xml");
@@ -89,19 +90,17 @@ public class MorphExtract {
 			}
 
 			XMLFilter xmlFilter = filterChain.get(filterChain.size() - 1);
-
-			java.util.Properties xmlProps = OutputPropertiesFactory
-					.getDefaultMethodProperties("xml");
-			xmlProps.setProperty("indent", "yes");
-			xmlProps.setProperty("standalone", "no");
-			xmlProps.setProperty("{http://xml.apache.org/xalan}indent-amount",
-					"2");
-			Serializer serializer = SerializerFactory.getSerializer(xmlProps);
-			serializer.setOutputStream(new FileOutputStream(morphFile));
+			DOMImplementationRegistry registry =
+			    DOMImplementationRegistry.newInstance();
+			DOMImplementationLS domImplementationLS =
+			    (DOMImplementationLS) registry.getDOMImplementation("LS");
+			LSOutput serializer =  domImplementationLS.createLSOutput();
+			serializer.setEncoding("UTF-8");
+			serializer.setByteStream(new FileOutputStream(morphFile));
 			//XMLFilter xmlFilter = xmlFilter2;
 			//XMLFilter xmlFilter = xmlFilter3;
 
-			xmlFilter.setContentHandler(serializer.asContentHandler());
+			xmlFilter.setContentHandler(new DefaultHandler());
 			xmlFilter.parse(new InputSource(tempFile.getPath()));
 		}
 

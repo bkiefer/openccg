@@ -5,13 +5,24 @@ import static org.junit.Assert.*;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.Writer;
 import java.util.LinkedHashSet;
-import java.util.Properties;
 import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+
+import org.jdom2.input.DOMBuilder;
+import org.junit.Before;
+import org.junit.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.bootstrap.DOMImplementationRegistry;
+import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSOutput;
+import org.w3c.dom.ls.LSSerializer;
 
 import opennlp.ccg.alignment.Alignment;
 import opennlp.ccg.alignment.Alignments;
@@ -19,35 +30,17 @@ import opennlp.ccg.alignment.Mapping;
 import opennlp.ccg.alignment.Phrase;
 import opennlp.ccg.alignment.PhrasePosition;
 import opennlp.ccg.alignment.Status;
-import opennlp.ccg.hylo.graph.LFGraphFactory;
 import opennlp.ccg.hylo.graph.LFBaseTest;
-
-import org.apache.xml.serializer.OutputPropertiesFactory;
-import org.apache.xml.serializer.Serializer;
-import org.apache.xml.serializer.SerializerFactory;
-import org.jdom2.input.DOMBuilder;
-import org.junit.Before;
-import org.junit.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+import opennlp.ccg.hylo.graph.LFGraphFactory;
 
 public class DisjunctivizerTest extends LFBaseTest {
-
-	static Properties OUTPUT_PROPERTIES = OutputPropertiesFactory.getDefaultMethodProperties("xml");
-
-	static {
-		OUTPUT_PROPERTIES.setProperty("indent", "yes");
-		OUTPUT_PROPERTIES.setProperty("media-type", "text/xml");
-		OUTPUT_PROPERTIES.setProperty(OutputPropertiesFactory.S_KEY_INDENT_AMOUNT, "2");
-		OUTPUT_PROPERTIES.setProperty("{http\u003a//xml.apache.org/xalan}indent-amount", "2");
-	}
 
 	DocumentBuilder documentBuilder;
 	DOMBuilder domBuilder;
 	File alignmentsFile, paraphrasesFile, outputFile;
 
-	@Before
+	@Override
+    @Before
 	public void setUp() throws Exception {
 		super.setUp();
 
@@ -81,9 +74,11 @@ public class DisjunctivizerTest extends LFBaseTest {
 	public void testBuildDisjunctiveLF() throws Exception {
 		Document paraphrases = documentBuilder.parse(paraphrasesFile);
 
-		Serializer s = SerializerFactory.getSerializer(OUTPUT_PROPERTIES);
-		s.setOutputFormat(OUTPUT_PROPERTIES);
-		s.setWriter(new BufferedWriter(new FileWriter(outputFile)));
+		DOMImplementationRegistry registry = DOMImplementationRegistry.newInstance();
+		DOMImplementationLS domImplementationLS = (DOMImplementationLS) registry.getDOMImplementation("LS");
+		LSSerializer s = domImplementationLS.createLSSerializer();
+
+		//s.setWriter(new BufferedWriter(new FileWriter(outputFile)));
 
 		Disjunctivizer disj = null;
 		NodeList paras = paraphrases.getElementsByTagName("paraphrase");
@@ -159,7 +154,12 @@ public class DisjunctivizerTest extends LFBaseTest {
 			}
 		}
 
-		s.asDOMSerializer().serialize(out);
+		LSOutput lsOutput =  domImplementationLS.createLSOutput();
+		lsOutput.setEncoding("UTF-8");
+		//lsOutput.s
+		Writer stringWriter = new BufferedWriter(new FileWriter(outputFile));
+		lsOutput.setCharacterStream(stringWriter);
+		s.write(out, lsOutput);
 	}
 
 }

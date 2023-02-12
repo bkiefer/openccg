@@ -216,12 +216,12 @@ public class CCGBankExtract extends CCGBankTask implements URIResolver {
 			rulesTempFile = File.createTempFile(grammarName + "-rules", ".xml");
 			rulesTempFile.deleteOnExit();
 			ruleProcessor.setTarget(rulesTempFile);
-			
-			Writer w = xsltProcessor.serializer.getWriter();
+
+			Writer w = xsltProcessor.serializer.getCharacterStream();
 			w.write("<ccg-lexicon>");
 			w.flush();
-			
-			Writer rw = ruleProcessor.serializer.getWriter();
+
+			Writer rw = ruleProcessor.serializer.getCharacterStream();
 			rw.write("<rules>");
 			rw.flush();
 		}
@@ -262,11 +262,11 @@ public class CCGBankExtract extends CCGBankTask implements URIResolver {
 	@Override
 	protected void finish() throws BuildException {
 		try {
-			Writer w = xsltProcessor.serializer.getWriter();
+			Writer w = xsltProcessor.serializer.getCharacterStream();
 			w.write("</ccg-lexicon>");
 			w.close();
-			
-			Writer rw = ruleProcessor.serializer.getWriter();
+
+			Writer rw = ruleProcessor.serializer.getCharacterStream();
 			rw.write("</rules>");
 			rw.close();
 		}

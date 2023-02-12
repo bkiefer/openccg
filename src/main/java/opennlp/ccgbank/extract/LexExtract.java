@@ -38,14 +38,12 @@ import javax.xml.transform.stream.StreamSource;
 
 import opennlp.ccgbank.extract.ExtractGrammar.ExtractionProperties;
 
-import org.apache.xml.serializer.OutputPropertiesFactory;
-import org.apache.xml.serializer.Serializer;
-import org.apache.xml.serializer.SerializerFactory;
 import org.jdom2.JDOMException;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 
@@ -164,13 +162,7 @@ public class LexExtract{
 			xmlFilter7.setParent(xmlFilter6);
 			XMLFilter xmlFilter = xmlFilter7;
 
-			java.util.Properties xmlProps = OutputPropertiesFactory.getDefaultMethodProperties("xml");
-			xmlProps.setProperty("indent", "yes");
-			xmlProps.setProperty("standalone", "no");
-    		xmlProps.setProperty("{http://xml.apache.org/xalan}indent-amount", "2");
-			Serializer serializer = SerializerFactory.getSerializer(xmlProps);
-			serializer.setOutputStream(new FileOutputStream(lexFile));
-			xmlFilter.setContentHandler(serializer.asContentHandler());
+			xmlFilter.setContentHandler(new DefaultHandler());
 			xmlFilter.parse(new InputSource(tempFile.getPath()));
 		}
 	}

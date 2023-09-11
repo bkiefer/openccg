@@ -1,3 +1,5 @@
+[![mvn build](https://github.com/bkiefer/openccg/actions/workflows/maven.yml/badge.svg)](https://github.com/bkiefer/openccg/actions/workflows/maven.yml)
+
 # Introduction
 
 See CHANGES for a description of the project status. Also see the web site and wiki at UT Austin: 

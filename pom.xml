@@ -4,7 +4,7 @@
 
   <groupId>de.dfki.mlt</groupId>
   <artifactId>openccg</artifactId>
-  <version>0.9.9</version>
+  <version>0.9.10</version>
   <packaging>jar</packaging>
 
   <name>OpenCCG</name>
@@ -34,7 +34,7 @@
     <dependency>
       <groupId>org.jdom</groupId>
       <artifactId>jdom2</artifactId>
-      <version>2.0.6</version>
+      <version>[2.0.6.1,)</version>
     </dependency>
 
     <dependency>
